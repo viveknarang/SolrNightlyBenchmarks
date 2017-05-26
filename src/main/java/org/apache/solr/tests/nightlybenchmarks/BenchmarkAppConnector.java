@@ -30,6 +30,7 @@ public class BenchmarkAppConnector {
 		NUMERIC_QUERY_STANDALONE,
 		NUMERIC_QUERY_CLOUD
 	
+		
 	}
 	
 	public static void writeFileHeader(String fileName, boolean createNewFile, FileType type) {
