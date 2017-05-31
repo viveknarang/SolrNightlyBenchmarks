@@ -24,7 +24,7 @@ public class Tests {
 
 		node.start();			
 		Util.getEnvironmentInformationFromMetricAPI(commitID, node.port);
-		BenchmarkReportData.returnStandaloneCreateCollectionMap = node.createCore("Core-" + UUID.randomUUID(), "Collection-" + UUID.randomUUID());	
+		BenchmarkReportData.returnStandaloneCreateCollectionMap = node.createCollection("Core-" + UUID.randomUUID(), "Collection-" + UUID.randomUUID());	
 		
 		SolrIndexingClient client = new SolrIndexingClient("localhost", node.port, node.collectionName, commitID);
 		BenchmarkReportData.metricMapStandalone = client.indexAmazonFoodData(numDocuments, node.getBaseUrl() + node.collectionName);
@@ -32,7 +32,7 @@ public class Tests {
 		node.stop();		
 		node.cleanup();	
 		
-		SolrCloud cloud = new SolrCloud(5, "2", "2", commitID, null, "localhost", true);
+		/*SolrCloud cloud = new SolrCloud(5, "2", "2", commitID, null, "localhost", true);
 		Tests.cloud = cloud;		
 		SolrIndexingClient cloudClient = new SolrIndexingClient("localhost", cloud.port, cloud.collectionName, commitID);
 		BenchmarkReportData.metricMapCloudSerial = cloudClient.indexAmazonFoodData(numDocuments, cloud.getuRL(), cloud.zookeeperIp, cloud.zookeeperPort, cloud.collectionName);
@@ -45,7 +45,7 @@ public class Tests {
 
 		cloud.shutdown();
 		BenchmarkReportData.returnCloudCreateCollectionMap = cloud.returnMapCreateCollection;
-		
+*/		
 		} catch (Exception e) {
 			e.printStackTrace();
 		}		
@@ -53,7 +53,7 @@ public class Tests {
 		return true;
 	}
 	
-	public static Map<String, String> numericQueryTests(String commitID, NumericQueryType queryType, int numberOfThreads, int secondsToWait) {
+	public static Map<String, String> numericQueryTests(String commitID, NumericQueryType queryType, int numberOfThreads, int secondsToWait, long delayEstimationBySeconds) {
 		
 		try {
 			
@@ -61,21 +61,21 @@ public class Tests {
 			LinkedList<ThreadedNumericQueryClient> list = new LinkedList<ThreadedNumericQueryClient>();
 	
 			for (int i = 0 ; i < numberOfThreads ; i++) {
-				ThreadedNumericQueryClient client = new ThreadedNumericQueryClient(cloud.getBaseURL(), 10000, 10, cloud.collectionName, queryType);
+				ThreadedNumericQueryClient client = new ThreadedNumericQueryClient(cloud.getBaseURL(), 10000, 10, cloud.collectionName, queryType, numberOfThreads, delayEstimationBySeconds);
 				list.add(client);
 			}
-			
+
 			ThreadedNumericQueryClient.running = true;
-	
+			
 			for (int i = 0 ; i < numberOfThreads ; i++) {
 				executorService.execute(list.get(i));
 			}
-			
+		
 			Thread.sleep(secondsToWait * 1000);
 			
 			ThreadedNumericQueryClient.running = false;
 			
-			executorService.shutdown();		
+			executorService.shutdownNow();	
 			
 			Thread.sleep(5000);	
 			
@@ -87,9 +87,13 @@ public class Tests {
 	   	    returnMap.put("TimeStamp", ft.format(dNow));
 	   	    returnMap.put("CommitID", commitID);
 			returnMap.put("TotalQueriesExecuted", "" + ThreadedNumericQueryClient.queryCount);
-			returnMap.put("QueriesPerSecond", "" + (double)(ThreadedNumericQueryClient.queryCount/secondsToWait));
+			returnMap.put("QueriesPerSecond", "" + (double)(ThreadedNumericQueryClient.queryCount/(secondsToWait-delayEstimationBySeconds)));
 			returnMap.put("MinQTime", "" + ThreadedNumericQueryClient.minQtime);
 			returnMap.put("MaxQTime", "" + ThreadedNumericQueryClient.maxQtime);
+			returnMap.put("QueryFailureCount", "" + ThreadedNumericQueryClient.queryFailureCount);
+			
+			Util.postMessage(returnMap.toString(), MessageType.RED_TEXT, false);
+			ThreadedNumericQueryClient.reset();
 			
 			return returnMap;
 			
@@ -101,9 +105,9 @@ public class Tests {
 		return null;
 	}
 	
-	public static void setUpCloudForFeatureTests(String commitID, int documentCount) {
+	public static void setUpCloudForFeatureTests(String commitID, int documentCount, int solrNodes, String shards, String replicas) {
 
-		SolrCloud cloud = new SolrCloud(5, "2", "2", commitID, null, "localhost", true);
+		SolrCloud cloud = new SolrCloud(solrNodes, shards, replicas, commitID, null, "localhost", true);
 		Tests.cloud = cloud;		
 		SolrIndexingClient cloudClient = new SolrIndexingClient("localhost", cloud.port, cloud.collectionName, commitID);
 		cloudClient.indexAmazonFoodData(documentCount, cloud.getuRL(), cloud.zookeeperIp, cloud.zookeeperPort, cloud.collectionName, 10000, 10);

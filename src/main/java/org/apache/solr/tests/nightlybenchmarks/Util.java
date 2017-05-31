@@ -36,11 +36,11 @@ import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 
 enum MessageType {
-	PROCESS, ACTION, RESULT_SUCCESS, RESULT_ERRROR, GENERAL
+	YELLOW_TEXT, WHITE_TEXT, GREEN_TEXT, RED_TEXT, BLUE_TEXT
 };
 
 public class Util {
-	
+
 	public static String WORK_DIRECTORY = System.getProperty("user.dir");
 	public static String DNAME = "SolrNightlyBenchmarks";
 	public static String BASE_DIR = WORK_DIRECTORY + File.separator + DNAME + File.separator;
@@ -50,10 +50,14 @@ public class Util {
 	public static String ZOOKEEPER_DIR = BASE_DIR + "ZOOKEEPER" + File.separator;
 	public static String ZOOKEEPER_IP = "127.0.0.1";
 	public static String ZOOKEEPER_PORT = "2181";
+	public static String LUCENE_SOLR_REPOSITORY_URL = "https://github.com/apache/lucene-solr";
+	public static String GIT_REPOSITORY_PATH;
+	public static String COMMIT_ID;
+	public static boolean SILENT = false;
 
 	final static Logger logger = Logger.getLogger(Util.class);
-	public static String gitRepositoryPath;
-	public static String commitId;
+
+	static Map<String, String> argM;
 
 	public static void postMessage(String message, MessageType type, boolean printInLog) {
 
@@ -64,16 +68,18 @@ public class Util {
 		String ANSI_BLUE = "\u001B[34m";
 		String ANSI_WHITE = "\u001B[37m";
 
-		if (type.equals(MessageType.ACTION)) {
-			System.out.println(ANSI_WHITE + message + ANSI_RESET);
-		} else if (type.equals(MessageType.GENERAL)) {
-			System.out.println(ANSI_BLUE + message + ANSI_RESET);
-		} else if (type.equals(MessageType.PROCESS)) {
-			System.out.println(ANSI_YELLOW + message + ANSI_RESET);
-		} else if (type.equals(MessageType.RESULT_ERRROR)) {
-			System.out.println(ANSI_RED + message + ANSI_RESET);
-		} else if (type.equals(MessageType.RESULT_SUCCESS)) {
-			System.out.println(ANSI_GREEN + message + ANSI_RESET);
+		if (!SILENT) {
+			if (type.equals(MessageType.WHITE_TEXT)) {
+				System.out.println(ANSI_WHITE + message + ANSI_RESET);
+			} else if (type.equals(MessageType.BLUE_TEXT)) {
+				System.out.println(ANSI_BLUE + message + ANSI_RESET);
+			} else if (type.equals(MessageType.YELLOW_TEXT)) {
+				System.out.println(ANSI_YELLOW + message + ANSI_RESET);
+			} else if (type.equals(MessageType.RED_TEXT)) {
+				System.out.println(ANSI_RED + message + ANSI_RESET);
+			} else if (type.equals(MessageType.GREEN_TEXT)) {
+				System.out.println(ANSI_GREEN + message + ANSI_RESET);
+			}
 		}
 
 		if (printInLog) {
@@ -83,8 +89,8 @@ public class Util {
 	}
 
 	public static int execute(String command, String workingDirectoryPath) {
-		Util.postMessage("Executing: " + command, MessageType.ACTION, true);
-		Util.postMessage("Working dir: " + workingDirectoryPath, MessageType.ACTION, true);
+		Util.postMessage("Executing: " + command, MessageType.WHITE_TEXT, true);
+		Util.postMessage("Working dir: " + workingDirectoryPath, MessageType.WHITE_TEXT, true);
 		File workingDirectory = new File(workingDirectoryPath);
 
 		workingDirectory.setExecutable(true);
@@ -105,7 +111,7 @@ public class Util {
 			proc.waitFor();
 			return proc.exitValue();
 		} catch (Exception e) {
-			Util.postMessage(e.getMessage(), MessageType.RESULT_ERRROR, true);
+			Util.postMessage(e.getMessage(), MessageType.RED_TEXT, true);
 			return -1;
 		}
 	}
@@ -113,7 +119,7 @@ public class Util {
 	@SuppressWarnings("finally")
 	public static int deleteDirectory(String directory) throws IOException, InterruptedException {
 
-		postMessage("Deleting directory: " + directory, MessageType.ACTION, true);
+		postMessage("Deleting directory: " + directory, MessageType.WHITE_TEXT, true);
 		Runtime rt = Runtime.getRuntime();
 		Process proc = null;
 		ProcessStreamReader errorGobbler = null;
@@ -133,7 +139,7 @@ public class Util {
 
 		} catch (Exception e) {
 
-			postMessage(e.getMessage(), MessageType.RESULT_ERRROR, true);
+			postMessage(e.getMessage(), MessageType.RED_TEXT, true);
 			return -1;
 
 		} finally {
@@ -148,7 +154,7 @@ public class Util {
 	@SuppressWarnings("finally")
 	public static int createDirectory(String directory) throws IOException, InterruptedException {
 
-		postMessage("Creating directory: " + directory, MessageType.ACTION, true);
+		postMessage("Creating directory: " + directory, MessageType.WHITE_TEXT, true);
 		Runtime rt = Runtime.getRuntime();
 		Process proc = null;
 		ProcessStreamReader errorGobbler = null;
@@ -168,7 +174,7 @@ public class Util {
 
 		} catch (Exception e) {
 
-			postMessage(e.getMessage(), MessageType.RESULT_ERRROR, true);
+			postMessage(e.getMessage(), MessageType.RED_TEXT, true);
 			return -1;
 
 		} finally {
@@ -180,9 +186,9 @@ public class Util {
 	}
 
 	public static void postMessageOnLine(String message) {
-
-		System.out.print(message);
-
+		if (!SILENT) {
+			System.out.print(message);
+		}
 	}
 
 	public static void checkBaseAndTempDir() {
@@ -191,13 +197,17 @@ public class Util {
 		baseDirectory.mkdir();
 		File tempDirectory = new File(TEMP_DIR);
 		tempDirectory.mkdir();
+
+		// Marking for GC
+		baseDirectory = null;
+		tempDirectory = null;
 	}
 
 	public static int getFreePort() {
 
 		int port = ThreadLocalRandom.current().nextInt(10000, 60000);
 		Util.postMessage("Looking for a free port ... Checking availability of port number: " + port,
-				MessageType.ACTION, true);
+				MessageType.WHITE_TEXT, true);
 		ServerSocket serverSocket = null;
 		DatagramSocket datagramSocket = null;
 		try {
@@ -205,7 +215,7 @@ public class Util {
 			serverSocket.setReuseAddress(true);
 			datagramSocket = new DatagramSocket(port);
 			datagramSocket.setReuseAddress(true);
-			Util.postMessage("Port " + port + " is free to use. Using this port !!", MessageType.RESULT_SUCCESS, true);
+			Util.postMessage("Port " + port + " is free to use. Using this port !!", MessageType.GREEN_TEXT, true);
 			return port;
 		} catch (IOException e) {
 		} finally {
@@ -219,9 +229,12 @@ public class Util {
 				} catch (IOException e) {
 				}
 			}
+			// Marking for GC
+			serverSocket = null;
+			datagramSocket = null;
 		}
 
-		Util.postMessage("Port " + port + " looks occupied trying another port number ... ", MessageType.RESULT_ERRROR,
+		Util.postMessage("Port " + port + " looks occupied trying another port number ... ", MessageType.RED_TEXT,
 				true);
 		return getFreePort();
 	}
@@ -262,17 +275,17 @@ public class Util {
 
 		} catch (Exception e) {
 
-			Util.postMessage(e.getMessage(), MessageType.RESULT_ERRROR, true);
+			Util.postMessage(e.getMessage(), MessageType.RED_TEXT, true);
 
 		} finally {
-
 			bos.close();
-
+			// Marking for GC
+			bos = null;
 		}
 	}
 
 	public static void extract(String filename, String filePath) throws IOException {
-		Util.postMessage("** Attempting to unzip the downloaded release ...", MessageType.ACTION, true);
+		Util.postMessage("** Attempting to unzip the downloaded release ...", MessageType.WHITE_TEXT, true);
 		try {
 			ZipFile zip = new ZipFile(filename);
 			zip.extractAll(filePath);
@@ -281,46 +294,55 @@ public class Util {
 		}
 	}
 
-	public static String getLatestCommitID() throws IOException {
-		Util.postMessage("** Getting the latest commit ID from remote repository", MessageType.GENERAL, false);
+	public static String getLatestCommitID(String repositoryURL) throws IOException {
+		Util.postMessage("** Getting the latest commit ID from remote repository", MessageType.BLUE_TEXT, false);
 		return new BufferedReader(new InputStreamReader(
-				Runtime.getRuntime().exec("git ls-remote https://github.com/apache/lucene-solr HEAD").getInputStream()))
-						.readLine().split("HEAD")[0].trim();
+				Runtime.getRuntime().exec("git ls-remote " + repositoryURL + " HEAD").getInputStream())).readLine()
+						.split("HEAD")[0].trim();
 	}
 
 	public static String getCommitInformation() {
 		// This method is failing need to check !
-		Util.postMessage("** Getting the latest commit Information from local repository", MessageType.GENERAL, false);
-		File directory = new File(Util.gitRepositoryPath);
+		Util.postMessage("** Getting the latest commit Information from local repository", MessageType.BLUE_TEXT,
+				false);
+		File directory = new File(Util.GIT_REPOSITORY_PATH);
 		directory.setExecutable(true);
 		BufferedReader reader;
+		String line = "";
+		String returnString = "";
+
 		try {
 			reader = new BufferedReader(new InputStreamReader(Runtime.getRuntime()
-					.exec("git show --no-patch " + Util.commitId, new String[] {}, directory).getInputStream()));
+					.exec("git show --no-patch " + Util.COMMIT_ID, new String[] {}, directory).getInputStream()));
 
-			String line = "";
-			String returnString = "";
 			while ((line = reader.readLine()) != null) {
 				returnString += line.replaceAll("<", " ").replaceAll(">", " ").replaceAll(",", "").trim() + ",";
 			}
-			
+
 			return returnString;
 
 		} catch (IOException e) {
 			e.printStackTrace();
 			return "";
+		} finally {
+			// Marking for GC
+			directory = null;
+			reader = null;
+			line = null;
+			returnString = null;
 		}
 
 	}
 
 	public static void getSystemEnvironmentInformation() {
 
-		Util.postMessage("** Getting the test environment information", MessageType.GENERAL, false);
+		Util.postMessage("** Getting the test environment information", MessageType.BLUE_TEXT, false);
 
 		BufferedReader reader;
+		String returnString = "";
+		String line = "";
+
 		try {
-			String returnString = "";
-			String line = "";
 
 			reader = new BufferedReader(
 					new InputStreamReader(Runtime.getRuntime().exec("sudo lshw -short").getInputStream()));
@@ -352,34 +374,16 @@ public class Util {
 
 		} catch (IOException e) {
 			e.printStackTrace();
+		} finally {
+			reader = null;
+			returnString = null;
+			line = null;
 		}
 	}
 
-	public static Map<String, Long> getMemoryState() {
+	public static void getPropertyValues() {
 
-		Map<String, Long> aMap = new HashMap<String, Long>();
-
-		try {
-
-			String line = "";
-			BufferedReader reader = new BufferedReader(
-					new InputStreamReader(Runtime.getRuntime().exec("cat /proc/meminfo").getInputStream()));
-
-			while ((line = reader.readLine()) != null) {
-				aMap.put(line.split(":")[0].trim(), Long.parseLong(line.split(":")[1].trim().replaceAll("[^0-9]", "")));
-			}
-
-		} catch (NumberFormatException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		return aMap;
-
-	}
-
-	public static void getProperties() {
+		// THIS METHOD SHOULD BE CALLED BEFORE ANYOTHER METHOD
 
 		Properties prop = new Properties();
 		InputStream input = null;
@@ -394,33 +398,41 @@ public class Util {
 					.getProperty("SolrNightlyBenchmarks.benchmarkAppDirectory");
 			Util.postMessage(
 					"Getting Property Value for benchmarkAppDirectory: " + BenchmarkAppConnector.benchmarkAppDirectory,
-					MessageType.PROCESS, false);
+					MessageType.YELLOW_TEXT, false);
 			SolrIndexingClient.solrCommitHistoryData = prop.getProperty("SolrNightlyBenchmarks.solrCommitHistoryData");
-			Util.postMessage("Getting Property Value for solrCommitHistoryData: " + SolrIndexingClient.solrCommitHistoryData,
-					MessageType.PROCESS, false);
-			SolrIndexingClient.amazonFoodDataLocation = prop.getProperty("SolrNightlyBenchmarks.amazonFoodDataLocation");
-			Util.postMessage("Getting Property Value for amazonFoodDataLocation: " + SolrIndexingClient.amazonFoodDataLocation,
-					MessageType.PROCESS, false);		
+			Util.postMessage(
+					"Getting Property Value for solrCommitHistoryData: " + SolrIndexingClient.solrCommitHistoryData,
+					MessageType.YELLOW_TEXT, false);
+			SolrIndexingClient.amazonFoodDataLocation = prop
+					.getProperty("SolrNightlyBenchmarks.amazonFoodDataLocation");
+			Util.postMessage(
+					"Getting Property Value for amazonFoodDataLocation: " + SolrIndexingClient.amazonFoodDataLocation,
+					MessageType.YELLOW_TEXT, false);
 			MetricEstimation.metricsURL = prop.getProperty("SolrNightlyBenchmarks.metricsURL");
 			Util.postMessage("Getting Property Value for metricsURL: " + MetricEstimation.metricsURL,
-					MessageType.PROCESS, false);
+					MessageType.YELLOW_TEXT, false);
 			Util.ZOOKEEPER_DOWNLOAD_URL = prop.getProperty("SolrNightlyBenchmarks.zookeeperDownloadURL");
 			Util.postMessage("Getting Property Value for zookeeperDownloadURL: " + Util.ZOOKEEPER_DOWNLOAD_URL,
-					MessageType.PROCESS, false);
+					MessageType.YELLOW_TEXT, false);
 			Util.ZOOKEEPER_RELEASE = prop.getProperty("SolrNightlyBenchmarks.zookeeperDownloadVersion");
 			Util.postMessage("Getting Property Value for zookeeperDownloadVersion: " + Util.ZOOKEEPER_RELEASE,
-					MessageType.PROCESS, false);
+					MessageType.YELLOW_TEXT, false);
 			Util.ZOOKEEPER_IP = prop.getProperty("SolrNightlyBenchmarks.zookeeperHostIp");
 			Util.postMessage("Getting Property Value for zookeeperHostIp: " + Util.ZOOKEEPER_IP,
-					MessageType.PROCESS, false);
+					MessageType.YELLOW_TEXT, false);
 			Util.ZOOKEEPER_PORT = prop.getProperty("SolrNightlyBenchmarks.zookeeperHostPort");
 			Util.postMessage("Getting Property Value for zookeeperHostPort: " + Util.ZOOKEEPER_PORT,
-					MessageType.PROCESS, false);
-			
-			if (BenchmarkAppConnector.benchmarkAppDirectory.charAt(BenchmarkAppConnector.benchmarkAppDirectory.length()-1) != File.separator.charAt(0)) {
-				Util.postMessage("Corrupt URL for BenchmarkAppConnector.benchmarkAppDirectory Property, correcting ...", MessageType.RESULT_ERRROR, false);
+					MessageType.YELLOW_TEXT, false);
+			Util.LUCENE_SOLR_REPOSITORY_URL = prop.getProperty("SolrNightlyBenchmarks.luceneSolrRepositoryURL");
+			Util.postMessage("Getting Property Value for luceneSolrRepositoryURL: " + Util.LUCENE_SOLR_REPOSITORY_URL,
+					MessageType.YELLOW_TEXT, false);
+
+			if (BenchmarkAppConnector.benchmarkAppDirectory
+					.charAt(BenchmarkAppConnector.benchmarkAppDirectory.length() - 1) != File.separator.charAt(0)) {
+				Util.postMessage("Corrupt URL for BenchmarkAppConnector.benchmarkAppDirectory Property, correcting ...",
+						MessageType.RED_TEXT, false);
 				BenchmarkAppConnector.benchmarkAppDirectory += File.separator;
-			}			
+			}
 
 		} catch (IOException ex) {
 			ex.printStackTrace();
@@ -432,17 +444,22 @@ public class Util {
 					e.printStackTrace();
 				}
 			}
+			// Marking for GC
+			input = null;
+			prop = null;
 		}
 
 	}
 
 	public static String getResponse(String url, String type) {
 
-		try {
-			Client client = Client.create();
-			WebResource webResource = client.resource(url);
+		Client client;
+		ClientResponse response;
 
-			ClientResponse response = webResource.accept(type).get(ClientResponse.class);
+		try {
+			client = Client.create();
+			WebResource webResource = client.resource(url);
+			response = webResource.accept(type).get(ClientResponse.class);
 
 			if (response.getStatus() != 200) {
 				throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
@@ -452,174 +469,231 @@ public class Util {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			// Marking for GC
+			client = null;
+			response = null;
 		}
+
 		return "";
 	}
-	
+
 	public static void getEnvironmentInformationFromMetricAPI(String commitID, String port) {
-		
-		String response = Util.getResponse("http://localhost:" + port + "/solr/admin/metrics?wt=json&group=jvm", MediaType.APPLICATION_JSON);
+
+		String response = Util.getResponse("http://localhost:" + port + "/solr/admin/metrics?wt=json&group=jvm",
+				MediaType.APPLICATION_JSON);
 		JSONObject jsonObject = (JSONObject) JSONValue.parse(response);
-		
+
 		String printString = "";
-		printString += "Memory Heap Committed:    <b>" + ((JSONObject)((JSONObject)jsonObject.get("metrics")).get("solr.jvm")).get("memory.heap.committed") + " Bytes</b><br/>\n";
-		printString += "Memory Heap Init:         <b>" + ((JSONObject)((JSONObject)jsonObject.get("metrics")).get("solr.jvm")).get("memory.heap.init") + " Bytes</b><br/>\n";
-		printString += "Memory Heap Max:          <b>" + ((JSONObject)((JSONObject)jsonObject.get("metrics")).get("solr.jvm")).get("memory.heap.max") + " Bytes</b><br/>\n";
+		printString += "Memory Heap Committed:    <b>"
+				+ ((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm")).get("memory.heap.committed")
+				+ " Bytes</b><br/>\n";
+		printString += "Memory Heap Init:         <b>"
+				+ ((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm")).get("memory.heap.init")
+				+ " Bytes</b><br/>\n";
+		printString += "Memory Heap Max:          <b>"
+				+ ((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm")).get("memory.heap.max")
+				+ " Bytes</b><br/>\n";
 
-		printString += "Memory Non-Heap Committed:<b>" + ((JSONObject)((JSONObject)jsonObject.get("metrics")).get("solr.jvm")).get("memory.non-heap.committed") + " Bytes</b><br/>\n";
-		printString += "Memory Non-Heap Init:     <b>" + ((JSONObject)((JSONObject)jsonObject.get("metrics")).get("solr.jvm")).get("memory.non-heap.init") + " Bytes</b><br/>\n";
-		printString += "Memory Non-Heap Max:      <b>" + ((JSONObject)((JSONObject)jsonObject.get("metrics")).get("solr.jvm")).get("memory.non-heap.max") + " Bytes</b><br/>\n";
+		printString += "Memory Non-Heap Committed:<b>"
+				+ ((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm"))
+						.get("memory.non-heap.committed")
+				+ " Bytes</b><br/>\n";
+		printString += "Memory Non-Heap Init:     <b>"
+				+ ((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm")).get("memory.non-heap.init")
+				+ " Bytes</b><br/>\n";
+		printString += "Memory Non-Heap Max:      <b>"
+				+ ((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm")).get("memory.non-heap.max")
+				+ " Bytes</b><br/>\n";
 
-		printString += "Memory Total Committed:   <b>" + ((JSONObject)((JSONObject)jsonObject.get("metrics")).get("solr.jvm")).get("memory.total.committed") + " Bytes</b><br/>\n";
-		printString += "Memory Total Init:        <b>" + ((JSONObject)((JSONObject)jsonObject.get("metrics")).get("solr.jvm")).get("memory.total.init") + " Bytes</b><br/>\n";
-		printString += "Memory Total Max:         <b>" + ((JSONObject)((JSONObject)jsonObject.get("metrics")).get("solr.jvm")).get("memory.total.max") + " Bytes</b><br/>\n";
-		
-		printString += "Total Physical Memory:    <b>" + ((JSONObject)((JSONObject)jsonObject.get("metrics")).get("solr.jvm")).get("os.totalPhysicalMemorySize") + " Bytes</b><br/>\n";
-		printString += "Total Swap Space:         <b>" + ((JSONObject)((JSONObject)jsonObject.get("metrics")).get("solr.jvm")).get("os.totalSwapSpaceSize") + " Bytes</b><br/>\n";
-		
-		
-		BenchmarkAppConnector.writeToWebAppDataFile(commitID + "_" + FileType.TEST_ENV_FILE  +  "_dump.csv", printString, true, FileType.TEST_ENV_FILE);
-		
-	}	
-	
-	public static void cleanUpSrcDirs() {
-		
-		Util.postMessage("** Initiating Housekeeping activities! ... ", MessageType.RESULT_ERRROR, false);
-		
-		try {
-			Util.deleteDirectory(TEMP_DIR);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		printString += "Memory Total Committed:   <b>"
+				+ ((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm")).get("memory.total.committed")
+				+ " Bytes</b><br/>\n";
+		printString += "Memory Total Init:        <b>"
+				+ ((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm")).get("memory.total.init")
+				+ " Bytes</b><br/>\n";
+		printString += "Memory Total Max:         <b>"
+				+ ((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm")).get("memory.total.max")
+				+ " Bytes</b><br/>\n";
+
+		printString += "Total Physical Memory:    <b>"
+				+ ((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm"))
+						.get("os.totalPhysicalMemorySize")
+				+ " Bytes</b><br/>\n";
+		printString += "Total Swap Space:         <b>"
+				+ ((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm")).get("os.totalSwapSpaceSize")
+				+ " Bytes</b><br/>\n";
+
+		BenchmarkAppConnector.writeToWebAppDataFile(commitID + "_" + FileType.TEST_ENV_FILE + "_dump.csv", printString,
+				true, FileType.TEST_ENV_FILE);
+
+		response = null;
+		jsonObject = null;
+		printString = null;
 	}
-	
+
 	public static void checkWebAppFiles() {
-		
-		Util.postMessage("** Verifying that the Webapp files are present ... ", MessageType.GENERAL, false);
-		
+
+		Util.postMessage("** Verifying that the Webapp files are present ... ", MessageType.BLUE_TEXT, false);
+
 		File webAppSourceDir = new File("WebAppSource");
 		File webAppTargetDir = new File(BenchmarkAppConnector.benchmarkAppDirectory);
 
 		try {
-		
-			if(!webAppTargetDir.exists()) {
-				Util.postMessage("** Webapp target directory not present creating now! ... ", MessageType.RESULT_ERRROR, false);
+
+			if (!webAppTargetDir.exists()) {
+				Util.postMessage("** Webapp target directory not present creating now! ... ", MessageType.RED_TEXT,
+						false);
 				webAppTargetDir.mkdir();
-	
-				if (!new File(BenchmarkAppConnector.benchmarkAppDirectory + File.separator + "UPDATED_WEB_APP_FILES_EXIST").exists()) {
-					Util.postMessage("** Copying updated/new webapp files ...", MessageType.GENERAL, false);
+
+				if (!new File(
+						BenchmarkAppConnector.benchmarkAppDirectory + File.separator + "UPDATED_WEB_APP_FILES_EXIST")
+								.exists()) {
+					Util.postMessage("** Copying updated/new webapp files ...", MessageType.BLUE_TEXT, false);
 					Util.copyFolder(webAppSourceDir, webAppTargetDir);
 				}
-				
-					File flagFile = new File(BenchmarkAppConnector.benchmarkAppDirectory + File.separator + "UPDATED_WEB_APP_FILES_EXIST");
-					flagFile.createNewFile();
-			
-			} else if (!new File(BenchmarkAppConnector.benchmarkAppDirectory + File.separator + "UPDATED_WEB_APP_FILES_EXIST").exists()) {
-				Util.postMessage("** Copying updated/new webapp files ...", MessageType.GENERAL, false);
+
+				File flagFile = new File(
+						BenchmarkAppConnector.benchmarkAppDirectory + File.separator + "UPDATED_WEB_APP_FILES_EXIST");
+				flagFile.createNewFile();
+
+			} else if (!new File(
+					BenchmarkAppConnector.benchmarkAppDirectory + File.separator + "UPDATED_WEB_APP_FILES_EXIST")
+							.exists()) {
+				Util.postMessage("** Copying updated/new webapp files ...", MessageType.BLUE_TEXT, false);
 				Util.copyFolder(webAppSourceDir, webAppTargetDir);
-				
-					File flagFile = new File(BenchmarkAppConnector.benchmarkAppDirectory + File.separator + "UPDATED_WEB_APP_FILES_EXIST");
-					flagFile.createNewFile();
-					
+
+				File flagFile = new File(
+						BenchmarkAppConnector.benchmarkAppDirectory + File.separator + "UPDATED_WEB_APP_FILES_EXIST");
+				flagFile.createNewFile();
+
 			} else {
-				Util.postMessage("** Webapp files seems present, skipping copying webapp files ...", MessageType.RESULT_SUCCESS, false);
+				Util.postMessage("** Webapp files seems present, skipping copying webapp files ...",
+						MessageType.GREEN_TEXT, false);
 			}
-			
+
 		} catch (IOException e) {
 			e.printStackTrace();
+		} finally {
+			webAppSourceDir = null;
+			webAppTargetDir = null;
 		}
 
-
 	}
-	
-	public static void copyFolder(File source, File destination)
-	{
-	    if (source.isDirectory())
-	    {
-	        if (!destination.exists())
-	        {
-	            destination.mkdirs();
-	        }
 
-	        String files[] = source.list();
+	public static void copyFolder(File source, File destination) {
+		if (source.isDirectory()) {
+			if (!destination.exists()) {
+				destination.mkdirs();
+			}
 
-	        for (String file : files)
-	        {
-	            File srcFile = new File(source, file);
-	            File destFile = new File(destination, file);
+			String files[] = source.list();
 
-	            copyFolder(srcFile, destFile);
-	        }
-	    }
-	    else
-	    {
-	        InputStream in = null;
-	        OutputStream out = null;
+			for (String file : files) {
+				File srcFile = new File(source, file);
+				File destFile = new File(destination, file);
 
-	        try
-	        {
-	            in = new FileInputStream(source);
-	            out = new FileOutputStream(destination);
+				copyFolder(srcFile, destFile);
+			}
+		} else {
+			InputStream in = null;
+			OutputStream out = null;
 
-	            byte[] buffer = new byte[1024];
+			try {
+				in = new FileInputStream(source);
+				out = new FileOutputStream(destination);
 
-	            int length;
-	            while ((length = in.read(buffer)) > 0)
-	            {
-	                out.write(buffer, 0, length);
-	            }
-	        }
-	        catch (Exception e)
-	        {
-	            try
-	            {
-	                in.close();
-	            }
-	            catch (IOException e1)
-	            {
-	                e1.printStackTrace();
-	            }
+				byte[] buffer = new byte[1024];
 
-	            try
-	            {
-	                out.close();
-	            }
-	            catch (IOException e1)
-	            {
-	                e1.printStackTrace();
-	            }
-	        }
-	    }
+				int length;
+				while ((length = in.read(buffer)) > 0) {
+					out.write(buffer, 0, length);
+				}
+			} catch (Exception e) {
+				try {
+					in.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+
+				try {
+					out.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			}
+		}
 	}
-	
+
 	public static void setAliveFlag() throws IOException {
-		
+
 		File statusFile = new File(BenchmarkAppConnector.benchmarkAppDirectory + "iamalive.txt");
 		if (!statusFile.exists()) {
-			statusFile.createNewFile();			
+			statusFile.createNewFile();
 		}
-		
+		// Marking for GC
+		statusFile = null;
 	}
-	
+
 	public static void setDeadFlag() {
-		
+
 		File statusFile = new File(BenchmarkAppConnector.benchmarkAppDirectory + "iamalive.txt");
 		if (statusFile.exists()) {
-			statusFile.delete();			
+			statusFile.delete();
 		}
-		
+		// Marking for GC
+		statusFile = null;
 	}
-	
+
 	public static Map<String, String> getArgs(String[] args) {
 
 		Map<String, String> argM = new HashMap<String, String>();
 		for (int i = 0; i < args.length; i += 2) {
 			argM.put(args[i], args[i + 1]);
 		}
-		
+
 		return argM;
 	}
-	
+
+	public static void init(String[] args) {
+
+		try {
+
+			Util.getPropertyValues();
+			Util.checkWebAppFiles();
+			Util.checkBaseAndTempDir();
+
+			Util.setAliveFlag();
+			argM = Util.getArgs(args);
+			Util.getSystemEnvironmentInformation();
+
+			String commitID = "";
+			if (argM.containsKey("-commitID")) {
+				commitID = argM.get("-commitID");
+			} else {
+				commitID = Util.getLatestCommitID(Util.LUCENE_SOLR_REPOSITORY_URL);
+				Util.postMessage("The latest commit ID is: " + commitID, MessageType.RED_TEXT, false);
+			}
+			Util.COMMIT_ID = commitID;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	public static void destroy() {
+
+		try {
+			if (argM.containsKey("-Housekeeping")) {
+				Util.postMessage("** Initiating Housekeeping activities! ... ", MessageType.RED_TEXT, false);
+				Util.deleteDirectory(Util.TEMP_DIR);
+			}
+
+			Util.setDeadFlag();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 }

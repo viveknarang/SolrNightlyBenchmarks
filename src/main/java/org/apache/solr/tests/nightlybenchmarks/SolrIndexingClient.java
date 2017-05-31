@@ -48,7 +48,7 @@ public class SolrIndexingClient {
 		
 		documentCount = numDocuments;
 		
-		Util.postMessage("** Indexing documents (Amazon Food Reviews) ...", MessageType.ACTION, false);		
+		Util.postMessage("** Indexing documents (Amazon Food Reviews) ...", MessageType.WHITE_TEXT, false);		
 		
 		HttpSolrClient solrClient = new HttpSolrClient.Builder(urlString).build();	
 		
@@ -95,16 +95,16 @@ public class SolrIndexingClient {
 				if(numberOfDocuments%5000 == 0) {
 								Util.postMessageOnLine("|");
 				}
-				Util.postMessageOnLine("" + numberOfDocuments + " ");
+				Util.postMessageOnLine("\r" + numberOfDocuments + " ");
             }
     		solrClient.commit();
     		end = System.nanoTime();
-    		Util.postMessage("", MessageType.GENERAL, false);
-    		Util.postMessage("** Committing the documents ...", MessageType.ACTION, false);
+    		Util.postMessage("", MessageType.BLUE_TEXT, false);
+    		Util.postMessage("** Committing the documents ...", MessageType.WHITE_TEXT, false);
 
-    		Util.postMessage("** Closing the Solr connection ...", MessageType.RESULT_SUCCESS, false);
+    		Util.postMessage("** Closing the Solr connection ...", MessageType.GREEN_TEXT, false);
     		solrClient.close();
-    		Util.postMessage("** Time taken to index " + numberOfDocuments + " documents is: " + (double)(end-start) + " nanosecond(s)" , MessageType.RESULT_ERRROR, false);
+    		Util.postMessage("** Time taken to index " + numberOfDocuments + " documents is: " + (double)(end-start) + " nanosecond(s)" , MessageType.RED_TEXT, false);
 
             
         } catch (IOException e) {
@@ -127,7 +127,7 @@ public class SolrIndexingClient {
 		
 		thread.stop();
 		
-		Util.postMessage("** Indexing documents (Amazon Food Reviews Data) COMPLETE ...", MessageType.ACTION, false);	
+		Util.postMessage("** Indexing documents (Amazon Food Reviews Data) COMPLETE ...", MessageType.WHITE_TEXT, false);	
 		return returnMetricMap;
 	}
 	
@@ -137,7 +137,7 @@ public class SolrIndexingClient {
 		
 		documentCount = numDocuments;
 		
-		Util.postMessage("** Indexing documents (Amazon Food Reviews) ...", MessageType.ACTION, false);		
+		Util.postMessage("** Indexing documents (Amazon Food Reviews) ...", MessageType.WHITE_TEXT, false);		
 		
 		CloudSolrClient solrClient = new CloudSolrClient(zookeeperIp + ":" + zookeeperPort);
 		solrClient.connect();
@@ -186,16 +186,16 @@ public class SolrIndexingClient {
 				if(numberOfDocuments%5000 == 0) {
 								Util.postMessageOnLine("|");
 				}
-				Util.postMessageOnLine("" + numberOfDocuments + " ");
+				Util.postMessageOnLine("\r" + numberOfDocuments + " ");
             }
     		solrClient.commit();
     		end = System.nanoTime();
-    		Util.postMessage("", MessageType.GENERAL, false);
-    		Util.postMessage("** Committing the documents ...", MessageType.ACTION, false);
+    		Util.postMessage("", MessageType.BLUE_TEXT, false);
+    		Util.postMessage("** Committing the documents ...", MessageType.WHITE_TEXT, false);
 
-    		Util.postMessage("** Closing the Solr connection ...", MessageType.RESULT_SUCCESS, false);
+    		Util.postMessage("** Closing the Solr connection ...", MessageType.GREEN_TEXT, false);
     		solrClient.close();
-    		Util.postMessage("** Time taken to index " + numberOfDocuments + " documents is: " + (double)(end-start) + " nanosecond(s)" , MessageType.RESULT_ERRROR, false);
+    		Util.postMessage("** Time taken to index " + numberOfDocuments + " documents is: " + (double)(end-start) + " nanosecond(s)" , MessageType.RED_TEXT, false);
 
             
         } catch (IOException e) {
@@ -219,7 +219,7 @@ public class SolrIndexingClient {
    	    
 		thread.stop();
 		
-		Util.postMessage("** Indexing documents (Amazon Food Reviews Data) COMPLETE ...", MessageType.ACTION, false);		
+		Util.postMessage("** Indexing documents (Amazon Food Reviews Data) COMPLETE ...", MessageType.WHITE_TEXT, false);		
 		return returnMetricMap;
 	}
 
@@ -229,7 +229,7 @@ public class SolrIndexingClient {
 		
 		documentCount = numDocuments;
 
-		Util.postMessage("** Indexing documents (Amazon Food Reviews) ...", MessageType.ACTION, false);		
+		Util.postMessage("** Indexing documents (Amazon Food Reviews) ...", MessageType.WHITE_TEXT, false);		
 		
 		ConcurrentUpdateSolrClient solrClient = new ConcurrentUpdateSolrClient(urlString, queueSize, threadCount);
 		solrClient.setConnectionTimeout(1000000);
@@ -276,16 +276,20 @@ public class SolrIndexingClient {
 				if(numberOfDocuments%5000 == 0) {
 								Util.postMessageOnLine("|");
 				}
-				Util.postMessageOnLine("" + numberOfDocuments + " ");
+				Util.postMessageOnLine("\r" + numberOfDocuments + " ");
             }
+            
+            solrClient.blockUntilFinished();
+            
     		solrClient.commit();
     		end = System.nanoTime();
-    		Util.postMessage("", MessageType.GENERAL, false);
-    		Util.postMessage("** Committing the documents ...", MessageType.ACTION, false);
+    		Util.postMessage("", MessageType.BLUE_TEXT, false);
+    		Util.postMessage("** Committing the documents ...", MessageType.WHITE_TEXT, false);
 
-    		Util.postMessage("** Closing the Solr connection ...", MessageType.RESULT_SUCCESS, false);
+    		Util.postMessage("** Closing the Solr connection ...", MessageType.GREEN_TEXT, false);
+    		solrClient.shutdownNow();
     		solrClient.close();
-    		Util.postMessage("** Time taken to index " + numberOfDocuments + " documents is: " + (double)(end-start) + " nanosecond(s)" , MessageType.RESULT_ERRROR, false);
+    		Util.postMessage("** Time taken to index " + numberOfDocuments + " documents is: " + (double)(end-start) + " nanosecond(s)" , MessageType.RED_TEXT, false);
 
             
         } catch (IOException e) {
@@ -308,7 +312,7 @@ public class SolrIndexingClient {
 		
 		thread.stop();
 		
-		Util.postMessage("** Indexing documents (Amazon Food Reviews Data) COMPLETE ...", MessageType.ACTION, false);		
+		Util.postMessage("** Indexing documents (Amazon Food Reviews Data) COMPLETE ...", MessageType.WHITE_TEXT, false);		
 		return returnMetricMap;
 	}
 

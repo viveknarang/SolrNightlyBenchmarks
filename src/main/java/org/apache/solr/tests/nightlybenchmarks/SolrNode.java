@@ -36,13 +36,13 @@ public class SolrNode {
 		this.zooKeeperPort = zooKeeperPort;		
 		this.isRunningInCloudMode = isRunningInCloudMode;
 		this.gitDirectoryPath = Util.TEMP_DIR + "git-repository-" + commitId;		
-		Util.gitRepositoryPath = this.gitDirectoryPath;
+		Util.GIT_REPOSITORY_PATH = this.gitDirectoryPath;
 		this.install();
 	}
 
 	private void install() throws IOException, GitAPIException {
 
-		Util.postMessage("** Installing Solr Node ...", MessageType.ACTION, true);
+		Util.postMessage("** Installing Solr Node ...", MessageType.WHITE_TEXT, true);
 		this.port = String.valueOf(Util.getFreePort());
 		
 		  this.baseDirectory  = Util.BASE_DIR + UUID.randomUUID().toString() + File.separator;
@@ -52,20 +52,20 @@ public class SolrNode {
 		  try {
 		  
 		  Util.postMessage("** Checking if SOLR node directory exists ...",
-		  MessageType.ACTION, true); File node = new File(nodeDirectory);
+		  MessageType.WHITE_TEXT, true); File node = new File(nodeDirectory);
 		  
 		  if (!node.exists()) {
 		  
 		  Util.postMessage("Node directory does not exist, creating it ...",
-		  MessageType.ACTION, true); node.mkdir();
+		  MessageType.WHITE_TEXT, true); node.mkdir();
 		  Util.postMessage("Directory Created: " + nodeDirectory,
-		  MessageType.RESULT_SUCCESS, true);
+		  MessageType.GREEN_TEXT, true);
 		  
 		  }
 		  
 		  } catch (Exception e) {
 		  
-		  Util.postMessage(e.getMessage(), MessageType.RESULT_ERRROR, true);
+		  Util.postMessage(e.getMessage(), MessageType.RED_TEXT, true);
 		  
 		  }
 		 
@@ -74,7 +74,7 @@ public class SolrNode {
 	}
 
 	void checkoutCommitAndBuild() throws IOException, GitAPIException {
-		Util.postMessage("** Checking out Solr: " + commitId + " ...", MessageType.ACTION, true);
+		Util.postMessage("** Checking out Solr: " + commitId + " ...", MessageType.WHITE_TEXT, true);
 
 		File gitDirectory = new File(gitDirectoryPath);
 
@@ -96,7 +96,7 @@ public class SolrNode {
 
 		if (new File(tarballLocation).exists() == false) {
 			if (new File(packageFilename).exists() == false) {
-				Util.postMessage("** There were new changes, need to rebuild ...", MessageType.ACTION, true);
+				Util.postMessage("** There were new changes, need to rebuild ...", MessageType.WHITE_TEXT, true);
 				Util.execute("ant ivy-bootstrap", gitDirectoryPath);
 				// Util.execute("ant compile", gitDirectoryPath);
 				Util.execute("ant package", gitDirectoryPath + File.separator + "solr");
@@ -116,18 +116,18 @@ public class SolrNode {
 
 		Util.postMessage(
 				"** Do we have packageFilename? " + (new File(tarballLocation).exists() ? "yes" : "no") + " ...",
-				MessageType.ACTION, true);
+				MessageType.WHITE_TEXT, true);
 	}
 
 	@SuppressWarnings("finally")
 	public int start() {
 
-		Util.postMessage("** Starting Solr Node ...", MessageType.ACTION, true);
+		Util.postMessage("** Starting Solr Node ...", MessageType.WHITE_TEXT, true);
 
 		Runtime rt = Runtime.getRuntime();
 		Process proc = null;
-		ProcessStreamReader errorGobbler = null;
-		ProcessStreamReader outputGobbler = null;
+		ProcessStreamReader errorStream = null;
+		ProcessStreamReader outputStream = null;
 		long start = 0;
 		long end = 0;
 		
@@ -137,7 +137,7 @@ public class SolrNode {
 				start = System.nanoTime();
 
 				new File(nodeDirectory + "solr").setExecutable(true);
-				proc = rt.exec(nodeDirectory + "solr start -force " + "-p " + port + " -m 4g" + " -z " + zooKeeperIp
+				proc = rt.exec(nodeDirectory + "solr start -force " + "-p " + port + " -m 4g " + " -z " + zooKeeperIp
 						+ ":" + zooKeeperPort);
 				end = System.nanoTime();
 					
@@ -145,24 +145,24 @@ public class SolrNode {
 
 				new File(nodeDirectory + "solr").setExecutable(true);
 				 start = System.nanoTime();
-				proc = rt.exec(nodeDirectory + "solr start -force " + "-p " + port + " -m 4g");
+				proc = rt.exec(nodeDirectory + "solr start -force " + "-p " + port + " -m 4g ");
 				end = System.nanoTime();
 
 			}
 
-			errorGobbler = new ProcessStreamReader(proc.getErrorStream(), "ERROR");
-			outputGobbler = new ProcessStreamReader(proc.getInputStream(), "OUTPUT");
+			errorStream = new ProcessStreamReader(proc.getErrorStream(), "ERROR");
+			outputStream = new ProcessStreamReader(proc.getInputStream(), "OUTPUT");
 
-			errorGobbler.start();
-			outputGobbler.start();
+			errorStream.start();
+			outputStream.start();
 			proc.waitFor();
 			
-			Util.postMessage("** Time taken to start the Solr Node is: " + (end-start) + " nanosecond(s)", MessageType.RESULT_ERRROR, false);
+			Util.postMessage("** Time taken to start the Solr Node is: " + (end-start) + " nanosecond(s)", MessageType.RED_TEXT, false);
 			return proc.exitValue();
 
 		} catch (Exception e) {
 
-			Util.postMessage(e.getMessage(), MessageType.RESULT_ERRROR, true);
+			Util.postMessage(e.getMessage(), MessageType.RED_TEXT, true);
 			return -1;
 
 		} finally {
@@ -175,7 +175,7 @@ public class SolrNode {
 
 	public void stop() {
 
-		Util.postMessage("** Stopping Solr Node ...", MessageType.ACTION, true);		long start = 0;
+		Util.postMessage("** Stopping Solr Node ...", MessageType.WHITE_TEXT, true);		long start = 0;
 		long end = 0;
 		
 
@@ -193,20 +193,20 @@ public class SolrNode {
 
 		 Util.execute(nodeDirectory + "solr stop -p " + port + " -force", nodeDirectory);			end = System.nanoTime();
 	    }
-		Util.postMessage("** Time taken to stop the node is: " + (end-start) + " nanosecond(s)", MessageType.RESULT_ERRROR, false);		
+		Util.postMessage("** Time taken to stop the node is: " + (end-start) + " nanosecond(s)", MessageType.RED_TEXT, false);		
 			
 		
 		}
 
 	
 	@SuppressWarnings("deprecation")
-	public Map<String, String> createCore(String coreName, String collectionName) throws IOException, InterruptedException {
+	public Map<String, String> createCollection(String coreName, String collectionName) throws IOException, InterruptedException {
 
         Thread thread =new Thread(new MetricEstimation(this.commitId, TestType.STANDALONE_CREATE_COLLECTION, this.port));  
         thread.start();  
 	
 		this.collectionName = collectionName;
-		Util.postMessage("** Creating core ... ", MessageType.ACTION, true);
+		Util.postMessage("** Creating core ... ", MessageType.WHITE_TEXT, true);
 
 		long start;
 		long end;
@@ -216,7 +216,7 @@ public class SolrNode {
 		returnVal = Util.execute("./solr create_core -c " + coreName + " -p " + port + " -collection " + collectionName + " -force", nodeDirectory);
 		end = System.nanoTime();
 		
-		Util.postMessage("** Time for creating the core is: " + (end-start) + " nanosecond(s)", MessageType.RESULT_ERRROR, false);
+		Util.postMessage("** Time for creating the core is: " + (end-start) + " nanosecond(s)", MessageType.RED_TEXT, false);
 		
         Date dNow = new Date( );
 	    SimpleDateFormat ft =  new SimpleDateFormat ("yyyy/MM/dd HH:mm:ss");
@@ -241,7 +241,7 @@ public class SolrNode {
         thread.start();  
 	
 		this.collectionName = collectionName;
-		Util.postMessage("** Creating collection ... ", MessageType.ACTION, true);
+		Util.postMessage("** Creating collection ... ", MessageType.WHITE_TEXT, true);
 
 		long start;
 		long end;
@@ -262,7 +262,7 @@ public class SolrNode {
 				end = System.nanoTime();
 		}
 		
-		Util.postMessage("** Time for creating the collection is: " + (end-start) + " nanosecond(s)", MessageType.RESULT_ERRROR, false);
+		Util.postMessage("** Time for creating the collection is: " + (end-start) + " nanosecond(s)", MessageType.RED_TEXT, false);
 		
         Date dNow = new Date( );
 		SimpleDateFormat ft =  new SimpleDateFormat ("yyyy/MM/dd HH:mm:ss");

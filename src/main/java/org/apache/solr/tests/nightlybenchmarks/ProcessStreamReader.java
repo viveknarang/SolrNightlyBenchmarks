@@ -21,11 +21,11 @@ public class ProcessStreamReader extends Thread {
 			BufferedReader br = new BufferedReader(isr);
 			String line = null;
 			while ((line = br.readLine()) != null) {
-				Util.postMessage(" >> " + line, MessageType.RESULT_SUCCESS, false);
+				Util.postMessage(" >> " + line, MessageType.GREEN_TEXT, false);
 			}
 
 		} catch (IOException ioe) {
-			Util.postMessage(ioe.getMessage(), MessageType.RESULT_ERRROR, false);
+			Util.postMessage(ioe.getMessage(), MessageType.RED_TEXT, false);
 		}
 	}
 

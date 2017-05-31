@@ -46,7 +46,7 @@ public class SolrCloud {
 		try {
 
 			zookeeperNode = new Zookeeper();
-			int initValue = zookeeperNode.start();
+			int initValue = zookeeperNode.doAction(ZookeeperAction.ZOOKEEPER_START);
 			if (initValue == 0) {
 						this.zookeeperIp = zookeeperNode.getZookeeperIp();
 						this.zookeeperPort = zookeeperNode.getZookeeperPort();
@@ -105,8 +105,9 @@ public class SolrCloud {
 			node.cleanup();
 			
 		}
-		zookeeperNode.stop();
-		zookeeperNode.clean();
+		zookeeperNode.doAction(ZookeeperAction.ZOOKEEPER_STOP);
+		zookeeperNode.doAction(ZookeeperAction.ZOOKEEPER_CLEAN);
+		zookeeperNode.cleanZooDataDir();
 	}	
 	
 }

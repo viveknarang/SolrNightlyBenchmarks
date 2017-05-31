@@ -20,16 +20,23 @@ public class ThreadedNumericQueryClient implements Runnable {
 	SolrParams params;
 	ConcurrentUpdateSolrClient solrClient;
 	NumericQueryType queryType;
+	int threadID;
+	boolean setThreadReadyFlag = false;
+	long numberOfThreads = 0;
+	long startTime = 0;
+	long delayEstimationBySeconds = 0;
 
 	public static boolean running;
-	public static int queryCount = 0;
+	public static long queryCount = 0;
 	public static long minQtime = Long.MAX_VALUE;
 	public static long maxQtime = Long.MIN_VALUE;
+	public static long queryFailureCount = 0;
+	public static long threadReadyCount = 0;
 	
-    Random r = new Random();
+    Random random = new Random();
 
 	@SuppressWarnings("deprecation")
-	public ThreadedNumericQueryClient(String urlString, int queueSize, int threadCount, String collectionName, NumericQueryType queryType) {
+	public ThreadedNumericQueryClient(String urlString, int queueSize, int threadCount, String collectionName, NumericQueryType queryType, long numberOfThreads, long delayEstimationBySeconds) {
 		super();
 		this.urlString = urlString;
 		this.queueSize = queueSize;
@@ -37,17 +44,26 @@ public class ThreadedNumericQueryClient implements Runnable {
 		this.collectionName = collectionName;
 		this.queryType = queryType;		
 		minQtime = Long.MAX_VALUE;
-		maxQtime = Long.MIN_VALUE;		
+		maxQtime = Long.MIN_VALUE;
+		this.numberOfThreads = numberOfThreads;
+		this.delayEstimationBySeconds = delayEstimationBySeconds;
+		
 		solrClient = new ConcurrentUpdateSolrClient(urlString, queueSize, threadCount);
-
-		Util.postMessage("** CREATING CLIENT ...", MessageType.RESULT_ERRROR, false);		
+		Util.postMessage("\r" + this.toString() + "** CREATING CLIENT ...", MessageType.RED_TEXT, false);		
 	}
 	
 	public void run() {
 		
 		long elapsedTime;
-		
+
+		startTime = System.nanoTime();		
 		while (true) {
+			
+			if (!setThreadReadyFlag) {
+				setThreadReadyFlag = true;
+				setThreadReadyCount();
+			}
+			
 			if (running == true) {
 				// Critical Section ....
 				SolrResponse response;
@@ -57,11 +73,11 @@ public class ThreadedNumericQueryClient implements Runnable {
 				      list.add("wt", "json");
 					
 						 if (this.queryType == NumericQueryType.TERM_NUMERIC_QUERY) {
-							  list.add("q", "RandomIntField:"+ SolrIndexingClient.intList.get(r.nextInt(SolrIndexingClient.documentCount)));
+							  list.add("q", "RandomIntField:"+ SolrIndexingClient.intList.get(random.nextInt(SolrIndexingClient.documentCount)));
 						 } else if (this.queryType == NumericQueryType.RANGE_NUMERIC_QUERY) {
 							 
-							 			int ft_1 = SolrIndexingClient.intList.get(r.nextInt(SolrIndexingClient.documentCount));
-							 			int ft_2 = SolrIndexingClient.intList.get(r.nextInt(SolrIndexingClient.documentCount));
+							 			int ft_1 = SolrIndexingClient.intList.get(random.nextInt(SolrIndexingClient.documentCount));
+							 			int ft_2 = SolrIndexingClient.intList.get(random.nextInt(SolrIndexingClient.documentCount));
 							 			
 							 			if (ft_2 > ft_1) {
 											  list.add("q", "RandomIntField:["+ ft_1 + " TO " + ft_2 + "]");
@@ -70,40 +86,67 @@ public class ThreadedNumericQueryClient implements Runnable {
 							 			}
 							 
 						 } else if (this.queryType == NumericQueryType.GREATER_THAN_NUMERIC_QUERY) {
-							  list.add("q", "RandomIntField:["+ SolrIndexingClient.intList.get(r.nextInt(SolrIndexingClient.documentCount)) + " TO *]");
+							  list.add("q", "RandomIntField:["+ SolrIndexingClient.intList.get(random.nextInt(SolrIndexingClient.documentCount)) + " TO *]");
 						 } else if (this.queryType == NumericQueryType.LESS_THAN_NUMERIC_QUERY) {
-							  list.add("q", "RandomIntField:[* TO " + SolrIndexingClient.intList.get(r.nextInt(SolrIndexingClient.documentCount)) + "]");
+							  list.add("q", "RandomIntField:[* TO " + SolrIndexingClient.intList.get(random.nextInt(SolrIndexingClient.documentCount)) + "]");
 						 }
 
 						 params = SolrParams.toSolrParams(list);
 
 						 			response = solrClient.query(collectionName, params);
-						    		setQueryCounter();
-						    		elapsedTime = response.getElapsedTime();
-						    		setMinMaxQTime(elapsedTime);
-						    		Util.postMessage(response.toString(), MessageType.GENERAL, false);
-						    		Util.postMessage(this.toString() + " < " + elapsedTime + " > ", MessageType.ACTION, false);
+						 			
+						 			if ((System.nanoTime() - startTime) >= (delayEstimationBySeconds * 1000000000)) {
+							    		setQueryCounter();
+							    		elapsedTime = response.getElapsedTime();
+							    		setMinMaxQTime(elapsedTime);
+							    		Util.postMessage("\r" + response.toString(), MessageType.BLUE_TEXT, false);
+							    		Util.postMessage("\r" + this.toString() + " < " + elapsedTime + " > ", MessageType.WHITE_TEXT, false);
+						 			} else {
+							    		Util.postMessage("\rWaiting For Estimation to start ...", MessageType.BLUE_TEXT, false);
+						 			}
 
 				} catch (SolrServerException | IOException e) {
-					e.printStackTrace();
+					//e.printStackTrace();
+					setQueryFailureCount();
 				}	    		
 
 			} else if (running == false) {
 				// Break out from loop ...
-				Util.postMessage("** Getting out of critical section ...", MessageType.RESULT_ERRROR, false);		
+				Util.postMessage("\r" + this.toString() + "** Getting out of critical section ...", MessageType.RED_TEXT, false);		
 				break;
 			}			
 		}
 		
-	    solrClient.close();
-		
+	    solrClient.close();	    
+		return;
 	}
 	
 	private synchronized void setQueryCounter() {
+		
+		if (running == false) {
+			return;
+		}
+		
 		queryCount++;
 	}
+
+	private synchronized void setQueryFailureCount() {
+		
+		queryFailureCount++;
 	
+	}
+	
+	private synchronized void setThreadReadyCount() {
+		
+		threadReadyCount++;
+	
+	}
+
 	private synchronized void setMinMaxQTime(long QTime) {
+
+		if (running == false) {
+			return;
+		}
 		
 		if (QTime < minQtime) {
 			minQtime = QTime;
@@ -113,6 +156,15 @@ public class ThreadedNumericQueryClient implements Runnable {
 			maxQtime = QTime;
 		}
 		
+	}
+	
+	public static void reset() {
+		running = false;
+		queryCount = 0;
+		minQtime = Long.MAX_VALUE;
+		maxQtime = Long.MIN_VALUE;
+		queryFailureCount = 0;
+		threadReadyCount = 0;
 	}
 
 }
