@@ -118,75 +118,6 @@ public class Util {
 		}
 	}
 
-	@SuppressWarnings("finally")
-	public static int deleteDirectory(String directory) throws IOException, InterruptedException {
-
-		postMessage("Deleting directory: " + directory, MessageType.WHITE_TEXT, true);
-		Runtime rt = Runtime.getRuntime();
-		Process proc = null;
-		ProcessStreamReader errorGobbler = null;
-		ProcessStreamReader outputGobbler = null;
-
-		try {
-
-			proc = rt.exec("rm -r -f " + directory);
-
-			errorGobbler = new ProcessStreamReader(proc.getErrorStream(), "ERROR");
-			outputGobbler = new ProcessStreamReader(proc.getInputStream(), "OUTPUT");
-
-			errorGobbler.start();
-			outputGobbler.start();
-			proc.waitFor();
-			return proc.exitValue();
-
-		} catch (Exception e) {
-
-			postMessage(e.getMessage(), MessageType.RED_TEXT, true);
-			return -1;
-
-		} finally {
-
-			proc.destroy();
-			return proc.exitValue();
-
-		}
-
-	}
-
-	@SuppressWarnings("finally")
-	public static int createDirectory(String directory) throws IOException, InterruptedException {
-
-		postMessage("Creating directory: " + directory, MessageType.WHITE_TEXT, true);
-		Runtime rt = Runtime.getRuntime();
-		Process proc = null;
-		ProcessStreamReader errorGobbler = null;
-		ProcessStreamReader outputGobbler = null;
-
-		try {
-
-			proc = rt.exec("mkdir " + directory);
-
-			errorGobbler = new ProcessStreamReader(proc.getErrorStream(), "ERROR");
-			outputGobbler = new ProcessStreamReader(proc.getInputStream(), "OUTPUT");
-
-			errorGobbler.start();
-			outputGobbler.start();
-			proc.waitFor();
-			return proc.exitValue();
-
-		} catch (Exception e) {
-
-			postMessage(e.getMessage(), MessageType.RED_TEXT, true);
-			return -1;
-
-		} finally {
-
-			proc.destroy();
-			return proc.exitValue();
-
-		}
-	}
-
 	public static void postMessageOnLine(String message) {
 		if (!SILENT) {
 			System.out.print(message);
@@ -692,12 +623,8 @@ public class Util {
 		try {
 
 			Util.getPropertyValues();
-			Util.checkWebAppFiles();
-			Util.checkBaseAndTempDir();
-
 			Util.setAliveFlag();
 			argM = Util.getArgs(args);
-			Util.getSystemEnvironmentInformation();
 
 			String commitID = "";
 			if (argM.containsKey("-commitID")) {
@@ -706,8 +633,18 @@ public class Util {
 				commitID = Util.getLatestCommitID(Util.LUCENE_SOLR_REPOSITORY_URL);
 				Util.postMessage("The latest commit ID is: " + commitID, MessageType.RED_TEXT, false);
 			}
+			
+			if (argM.containsKey("-RunSilently")) {
+				Util.postMessage("** Running silently since -RunSilently is set ...", MessageType.BLUE_TEXT, false);
+				Util.SILENT = true;
+			}
+			
 			Util.COMMIT_ID = commitID;
 
+			Util.checkWebAppFiles();
+			Util.checkBaseAndTempDir();
+			Util.getSystemEnvironmentInformation();
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -719,7 +656,7 @@ public class Util {
 		try {
 			if (argM.containsKey("-Housekeeping")) {
 				Util.postMessage("** Initiating Housekeeping activities! ... ", MessageType.RED_TEXT, false);
-				Util.deleteDirectory(Util.TEMP_DIR);
+				Util.execute("rm -r -f " + Util.TEMP_DIR, Util.TEMP_DIR);
 			}
 
 			Util.setDeadFlag();

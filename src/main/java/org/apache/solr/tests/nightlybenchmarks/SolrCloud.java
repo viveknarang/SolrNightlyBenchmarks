@@ -57,7 +57,7 @@ public class SolrCloud {
 			for (int i = 1; i <= solrNodes; i++) {
 				
 					SolrNode node = new SolrNode(commitId, this.zookeeperIp, this.zookeeperPort, true);
-					node.start();					
+					node.doAction(SolrNodeAction.NODE_START);					
 					nodes.add(node);					
 			}
 			
@@ -101,7 +101,7 @@ public class SolrCloud {
 
 	public void shutdown() throws IOException, InterruptedException {
 		for (SolrNode node: nodes) {
-			node.stop();
+			node.doAction(SolrNodeAction.NODE_STOP);
 			node.cleanup();
 			
 		}

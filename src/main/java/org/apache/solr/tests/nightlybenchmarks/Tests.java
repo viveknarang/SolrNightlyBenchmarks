@@ -22,14 +22,14 @@ public class Tests {
 		
 		SolrNode node = new SolrNode(commitID, "", "", false);
 
-		node.start();			
+		node.doAction(SolrNodeAction.NODE_START);			
 		Util.getEnvironmentInformationFromMetricAPI(commitID, node.port);
 		BenchmarkReportData.returnStandaloneCreateCollectionMap = node.createCollection("Core-" + UUID.randomUUID(), "Collection-" + UUID.randomUUID());	
 		
 		SolrIndexingClient client = new SolrIndexingClient("localhost", node.port, node.collectionName, commitID);
 		BenchmarkReportData.metricMapStandalone = client.indexAmazonFoodData(numDocuments, node.getBaseUrl() + node.collectionName);
 		
-		node.stop();		
+		node.doAction(SolrNodeAction.NODE_STOP);		
 		node.cleanup();	
 		
 		/*SolrCloud cloud = new SolrCloud(5, "2", "2", commitID, null, "localhost", true);

@@ -88,11 +88,7 @@ public class Zookeeper {
 	}
 
 	public void cleanZooDataDir() {
-		try {
-			Util.deleteDirectory("/tmp/zookeeper/");
-		} catch (IOException | InterruptedException e) {
-			e.printStackTrace();
-		}
+			Util.execute("rm -r -f /tmp/zookeeper/", "/tmp/zookeeper/");
 	}
 
 	public String getZookeeperIp() {

@@ -13,6 +13,8 @@ import org.apache.log4j.Logger;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
+enum SolrNodeAction {NODE_START, NODE_STOP}
+
 public class SolrNode {
 
 	final static Logger logger = Logger.getLogger(SolrNode.class);
@@ -118,85 +120,39 @@ public class SolrNode {
 				"** Do we have packageFilename? " + (new File(tarballLocation).exists() ? "yes" : "no") + " ...",
 				MessageType.WHITE_TEXT, true);
 	}
-
-	@SuppressWarnings("finally")
-	public int start() {
-
-		Util.postMessage("** Starting Solr Node ...", MessageType.WHITE_TEXT, true);
-
-		Runtime rt = Runtime.getRuntime();
-		Process proc = null;
-		ProcessStreamReader errorStream = null;
-		ProcessStreamReader outputStream = null;
+	
+	public int doAction(SolrNodeAction action) {
+		
 		long start = 0;
 		long end = 0;
-		
-		try {
+		int returnValue = 0;
+
+		start = System.nanoTime();
+		new File(nodeDirectory + "solr").setExecutable(true);
+		if (action == SolrNodeAction.NODE_START) {
+			
+			if (isRunningInCloudMode) {
+				returnValue = Util.execute(nodeDirectory + "solr start -force " + "-p " + port + " -m 4g " + " -z " + zooKeeperIp
+					+ ":" + zooKeeperPort, nodeDirectory);
+			} else {
+				returnValue = Util.execute(nodeDirectory + "solr start -force " + "-p " + port + " -m 4g ", nodeDirectory);
+			}			
+			
+		} else if (action == SolrNodeAction.NODE_STOP) {
 
 			if (isRunningInCloudMode) {
-				start = System.nanoTime();
-
-				new File(nodeDirectory + "solr").setExecutable(true);
-				proc = rt.exec(nodeDirectory + "solr start -force " + "-p " + port + " -m 4g " + " -z " + zooKeeperIp
-						+ ":" + zooKeeperPort);
-				end = System.nanoTime();
-					
-			} else {
-
-				new File(nodeDirectory + "solr").setExecutable(true);
-				 start = System.nanoTime();
-				proc = rt.exec(nodeDirectory + "solr start -force " + "-p " + port + " -m 4g ");
-				end = System.nanoTime();
-
-			}
-
-			errorStream = new ProcessStreamReader(proc.getErrorStream(), "ERROR");
-			outputStream = new ProcessStreamReader(proc.getInputStream(), "OUTPUT");
-
-			errorStream.start();
-			outputStream.start();
-			proc.waitFor();
-			
-			Util.postMessage("** Time taken to start the Solr Node is: " + (end-start) + " nanosecond(s)", MessageType.RED_TEXT, false);
-			return proc.exitValue();
-
-		} catch (Exception e) {
-
-			Util.postMessage(e.getMessage(), MessageType.RED_TEXT, true);
-			return -1;
-
-		} finally {
-
-			return proc.exitValue();
-
+				returnValue = Util.execute(nodeDirectory + "solr stop -p " + port + " -z " + zooKeeperIp + ":" + zooKeeperPort + " -force",
+						nodeDirectory);
+			} else  {
+				returnValue = Util.execute(nodeDirectory + "solr stop -p " + port + " -force", nodeDirectory);
+		    }
+		
 		}
+		end = System.nanoTime();
+		Util.postMessage("** Time taken for the node " + action +" activity is: " + (end-start) + " nanosecond(s)", MessageType.RED_TEXT, false);		
 
+		return returnValue;
 	}
-
-	public void stop() {
-
-		Util.postMessage("** Stopping Solr Node ...", MessageType.WHITE_TEXT, true);		long start = 0;
-		long end = 0;
-		
-
-		if (isRunningInCloudMode) {
-			start = System.nanoTime();
-
-		 Util.execute(
-					nodeDirectory + "solr stop -p " + port + " -z " + zooKeeperIp + ":" + zooKeeperPort + " -force",
-					nodeDirectory);
-			
-		 end = System.nanoTime();
-
-		} else  {
-			start = System.nanoTime();
-
-		 Util.execute(nodeDirectory + "solr stop -p " + port + " -force", nodeDirectory);			end = System.nanoTime();
-	    }
-		Util.postMessage("** Time taken to stop the node is: " + (end-start) + " nanosecond(s)", MessageType.RED_TEXT, false);		
-			
-		
-		}
 
 	
 	@SuppressWarnings("deprecation")
@@ -290,10 +246,6 @@ public class SolrNode {
 	}
 	
 	public void cleanup() {
-		try {
-			Util.deleteDirectory(baseDirectory);
-		} catch (IOException | InterruptedException e) {
-			e.printStackTrace();
-		}
+			Util.execute("rm -r -f " + baseDirectory, baseDirectory);
 	}
 }
