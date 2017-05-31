@@ -15,11 +15,11 @@ enum TestType {
 
 }
 
-public class MetricEstimation extends Thread {
+public class MetricCollector extends Thread {
 
 	public static String metricsURL;
 
-	public MetricEstimation(String commitID, TestType testType, String port) {
+	public MetricCollector(String commitID, TestType testType, String port) {
 		this.testType = testType;
 		this.commitID = commitID;
 		this.port = port;

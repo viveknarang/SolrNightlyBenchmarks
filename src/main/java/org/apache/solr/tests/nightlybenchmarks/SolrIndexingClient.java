@@ -59,7 +59,7 @@ public class SolrIndexingClient {
         String cvsSplitBy = ",";
         int value;
         
-        Thread thread =new Thread(new MetricEstimation(this.commitId, TestType.STANDALONE_INDEXING, this.port));  
+        Thread thread =new Thread(new MetricCollector(this.commitId, TestType.STANDALONE_INDEXING, this.port));  
         thread.start();  
 
         try (BufferedReader br = new BufferedReader(new FileReader(amazonFoodDataLocation))) {
@@ -149,7 +149,7 @@ public class SolrIndexingClient {
         String cvsSplitBy = ",";
         int value;
         
-        Thread thread =new Thread(new MetricEstimation(this.commitId, TestType.CLOUD_INDEXING_REGULAR, this.port));  
+        Thread thread =new Thread(new MetricCollector(this.commitId, TestType.CLOUD_INDEXING_REGULAR, this.port));  
         thread.start();  
 
         try (BufferedReader br = new BufferedReader(new FileReader(amazonFoodDataLocation))) {
@@ -239,7 +239,7 @@ public class SolrIndexingClient {
         String cvsSplitBy = ",";
         int value;
         
-        Thread thread =new Thread(new MetricEstimation(this.commitId, TestType.CLOUD_INDEXING_CONCURRENT, this.port));  
+        Thread thread =new Thread(new MetricCollector(this.commitId, TestType.CLOUD_INDEXING_CONCURRENT, this.port));  
         thread.start();  
 
         try (BufferedReader br = new BufferedReader(new FileReader(amazonFoodDataLocation))) {

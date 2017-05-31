@@ -158,7 +158,7 @@ public class SolrNode {
 	@SuppressWarnings("deprecation")
 	public Map<String, String> createCollection(String coreName, String collectionName) throws IOException, InterruptedException {
 
-        Thread thread =new Thread(new MetricEstimation(this.commitId, TestType.STANDALONE_CREATE_COLLECTION, this.port));  
+        Thread thread =new Thread(new MetricCollector(this.commitId, TestType.STANDALONE_CREATE_COLLECTION, this.port));  
         thread.start();  
 	
 		this.collectionName = collectionName;
@@ -193,7 +193,7 @@ public class SolrNode {
 	public Map<String, String> createCollection(String collectionName, String configName, String shards, String replicationFactor)
 			throws IOException, InterruptedException {
 
-        Thread thread =new Thread(new MetricEstimation(this.commitId, TestType.CLOUD_CREATE_COLLECTION, this.port));  
+        Thread thread =new Thread(new MetricCollector(this.commitId, TestType.CLOUD_CREATE_COLLECTION, this.port));  
         thread.start();  
 	
 		this.collectionName = collectionName;

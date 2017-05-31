@@ -371,8 +371,8 @@ public class Util {
 			Util.postMessage(
 					"Getting Property Value for amazonFoodDataLocation: " + SolrIndexingClient.amazonFoodDataLocation,
 					MessageType.YELLOW_TEXT, false);
-			MetricEstimation.metricsURL = prop.getProperty("SolrNightlyBenchmarks.metricsURL");
-			Util.postMessage("Getting Property Value for metricsURL: " + MetricEstimation.metricsURL,
+			MetricCollector.metricsURL = prop.getProperty("SolrNightlyBenchmarks.metricsURL");
+			Util.postMessage("Getting Property Value for metricsURL: " + MetricCollector.metricsURL,
 					MessageType.YELLOW_TEXT, false);
 			Util.ZOOKEEPER_DOWNLOAD_URL = prop.getProperty("SolrNightlyBenchmarks.zookeeperDownloadURL");
 			Util.postMessage("Getting Property Value for zookeeperDownloadURL: " + Util.ZOOKEEPER_DOWNLOAD_URL,
