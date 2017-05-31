@@ -17,7 +17,7 @@ public class SolrNightlyBenchmarks {
 		BenchmarkReportData.numericQueryLNQMetric =	Tests.numericQueryTests(Util.COMMIT_ID, NumericQueryType.LESS_THAN_NUMERIC_QUERY, 1, 180, 120);
 		BenchmarkReportData.numericQueryGNQMetric =	Tests.numericQueryTests(Util.COMMIT_ID, NumericQueryType.GREATER_THAN_NUMERIC_QUERY, 1, 180, 120);
 		Tests.shutDown();
-		OutPort.publishDataForWebApp();
+		BenchmarkAppConnector.publishDataForWebApp();
 
 		Util.destroy();
 	}
