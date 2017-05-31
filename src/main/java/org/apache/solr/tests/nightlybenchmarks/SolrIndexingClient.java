@@ -136,10 +136,9 @@ public class SolrIndexingClient {
 	public Map<String, String> indexAmazonFoodData(int numDocuments, String urlString, String zookeeperIp, String zookeeperPort, String collectionName) {
 		
 		documentCount = numDocuments;
-		
 		Util.postMessage("** Indexing documents (Amazon Food Reviews) ...", MessageType.WHITE_TEXT, false);		
 		
-		CloudSolrClient solrClient = new CloudSolrClient(zookeeperIp + ":" + zookeeperPort);
+		CloudSolrClient solrClient = new CloudSolrClient.Builder().withZkHost(zookeeperIp + ":" + zookeeperPort).build();
 		solrClient.connect();
 		solrClient.setDefaultCollection(collectionName);
 		
@@ -231,8 +230,7 @@ public class SolrIndexingClient {
 
 		Util.postMessage("** Indexing documents (Amazon Food Reviews) ...", MessageType.WHITE_TEXT, false);		
 		
-		ConcurrentUpdateSolrClient solrClient = new ConcurrentUpdateSolrClient(urlString, queueSize, threadCount);
-		solrClient.setConnectionTimeout(1000000);
+		ConcurrentUpdateSolrClient solrClient = new ConcurrentUpdateSolrClient(urlString , queueSize, threadCount);
 		
 		long start = 0; 
 		long end = 0;	
