@@ -107,7 +107,6 @@ public class SolrCloud {
 		}
 		zookeeperNode.doAction(ZookeeperAction.ZOOKEEPER_STOP);
 		zookeeperNode.doAction(ZookeeperAction.ZOOKEEPER_CLEAN);
-		zookeeperNode.cleanZooDataDir();
 	}	
 	
 }

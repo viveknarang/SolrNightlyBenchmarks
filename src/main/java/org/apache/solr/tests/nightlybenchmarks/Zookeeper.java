@@ -81,14 +81,11 @@ public class Zookeeper {
 					Util.ZOOKEEPER_DIR + "zookeeper-" + Util.ZOOKEEPER_RELEASE + File.separator + zooCommand + " stop",
 					Util.ZOOKEEPER_DIR + "zookeeper-" + Util.ZOOKEEPER_RELEASE + File.separator);
 		} else if (action == ZookeeperAction.ZOOKEEPER_CLEAN) {
-			return Util.execute("rm -r -f " + Util.ZOOKEEPER_DIR, Util.ZOOKEEPER_DIR);
+			Util.execute("rm -r -f " + Util.ZOOKEEPER_DIR, Util.ZOOKEEPER_DIR);
+			return Util.execute("rm -r -f /tmp/zookeeper/", "/tmp/zookeeper/");
 		}
 
 		return -1;
-	}
-
-	public void cleanZooDataDir() {
-			Util.execute("rm -r -f /tmp/zookeeper/", "/tmp/zookeeper/");
 	}
 
 	public String getZookeeperIp() {
