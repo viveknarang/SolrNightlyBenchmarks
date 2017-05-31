@@ -10,7 +10,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.apache.solr.tests.nightlybenchmarks.ThreadedNumericQueryClient.NumericQueryType;
+import org.apache.solr.tests.nightlybenchmarks.QueryClient.QueryType;
 
 public class Tests {
 	
@@ -53,19 +53,19 @@ public class Tests {
 		return true;
 	}
 	
-	public static Map<String, String> numericQueryTests(String commitID, NumericQueryType queryType, int numberOfThreads, int secondsToWait, long delayEstimationBySeconds) {
+	public static Map<String, String> numericQueryTests(String commitID, QueryType queryType, int numberOfThreads, int secondsToWait, long delayEstimationBySeconds) {
 		
 		try {
 			
 			ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
-			LinkedList<ThreadedNumericQueryClient> list = new LinkedList<ThreadedNumericQueryClient>();
+			LinkedList<QueryClient> list = new LinkedList<QueryClient>();
 	
 			for (int i = 0 ; i < numberOfThreads ; i++) {
-				ThreadedNumericQueryClient client = new ThreadedNumericQueryClient(cloud.getBaseURL(), 10000, 10, cloud.collectionName, queryType, numberOfThreads, delayEstimationBySeconds);
+				QueryClient client = new QueryClient(cloud.getBaseURL(), 10000, 10, cloud.collectionName, queryType, numberOfThreads, delayEstimationBySeconds);
 				list.add(client);
 			}
 
-			ThreadedNumericQueryClient.running = true;
+			QueryClient.running = true;
 			
 			for (int i = 0 ; i < numberOfThreads ; i++) {
 				executorService.execute(list.get(i));
@@ -73,7 +73,7 @@ public class Tests {
 		
 			Thread.sleep(secondsToWait * 1000);
 			
-			ThreadedNumericQueryClient.running = false;
+			QueryClient.running = false;
 			
 			executorService.shutdownNow();	
 			
@@ -86,14 +86,14 @@ public class Tests {
 
 	   	    returnMap.put("TimeStamp", ft.format(dNow));
 	   	    returnMap.put("CommitID", commitID);
-			returnMap.put("TotalQueriesExecuted", "" + ThreadedNumericQueryClient.queryCount);
-			returnMap.put("QueriesPerSecond", "" + (double)(ThreadedNumericQueryClient.queryCount/(secondsToWait-delayEstimationBySeconds)));
-			returnMap.put("MinQTime", "" + ThreadedNumericQueryClient.minQtime);
-			returnMap.put("MaxQTime", "" + ThreadedNumericQueryClient.maxQtime);
-			returnMap.put("QueryFailureCount", "" + ThreadedNumericQueryClient.queryFailureCount);
+			returnMap.put("TotalQueriesExecuted", "" + QueryClient.queryCount);
+			returnMap.put("QueriesPerSecond", "" + (double)(QueryClient.queryCount/(secondsToWait-delayEstimationBySeconds)));
+			returnMap.put("MinQTime", "" + QueryClient.minQtime);
+			returnMap.put("MaxQTime", "" + QueryClient.maxQtime);
+			returnMap.put("QueryFailureCount", "" + QueryClient.queryFailureCount);
 			
 			Util.postMessage(returnMap.toString(), MessageType.RED_TEXT, false);
-			ThreadedNumericQueryClient.reset();
+			QueryClient.reset();
 			
 			return returnMap;
 			

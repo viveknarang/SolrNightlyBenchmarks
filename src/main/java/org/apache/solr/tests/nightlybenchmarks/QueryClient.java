@@ -9,9 +9,9 @@ import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrClient;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
 
-public class ThreadedNumericQueryClient implements Runnable {
+public class QueryClient implements Runnable {
 	
-	public enum NumericQueryType { TERM_NUMERIC_QUERY, RANGE_NUMERIC_QUERY, GREATER_THAN_NUMERIC_QUERY, LESS_THAN_NUMERIC_QUERY }
+	public enum QueryType { TERM_NUMERIC_QUERY, RANGE_NUMERIC_QUERY, GREATER_THAN_NUMERIC_QUERY, LESS_THAN_NUMERIC_QUERY }
 	
 	String urlString; 
 	int queueSize;
@@ -19,7 +19,7 @@ public class ThreadedNumericQueryClient implements Runnable {
 	String collectionName;
 	SolrParams params;
 	ConcurrentUpdateSolrClient solrClient;
-	NumericQueryType queryType;
+	QueryType queryType;
 	int threadID;
 	boolean setThreadReadyFlag = false;
 	long numberOfThreads = 0;
@@ -36,7 +36,7 @@ public class ThreadedNumericQueryClient implements Runnable {
     Random random = new Random();
 
 	@SuppressWarnings("deprecation")
-	public ThreadedNumericQueryClient(String urlString, int queueSize, int threadCount, String collectionName, NumericQueryType queryType, long numberOfThreads, long delayEstimationBySeconds) {
+	public QueryClient(String urlString, int queueSize, int threadCount, String collectionName, QueryType queryType, long numberOfThreads, long delayEstimationBySeconds) {
 		super();
 		this.urlString = urlString;
 		this.queueSize = queueSize;
@@ -72,9 +72,9 @@ public class ThreadedNumericQueryClient implements Runnable {
 				      list.add("defType", "edismax");
 				      list.add("wt", "json");
 					
-						 if (this.queryType == NumericQueryType.TERM_NUMERIC_QUERY) {
+						 if (this.queryType == QueryType.TERM_NUMERIC_QUERY) {
 							  list.add("q", "RandomIntField:"+ SolrIndexingClient.intList.get(random.nextInt(SolrIndexingClient.documentCount)));
-						 } else if (this.queryType == NumericQueryType.RANGE_NUMERIC_QUERY) {
+						 } else if (this.queryType == QueryType.RANGE_NUMERIC_QUERY) {
 							 
 							 			int ft_1 = SolrIndexingClient.intList.get(random.nextInt(SolrIndexingClient.documentCount));
 							 			int ft_2 = SolrIndexingClient.intList.get(random.nextInt(SolrIndexingClient.documentCount));
@@ -85,9 +85,9 @@ public class ThreadedNumericQueryClient implements Runnable {
 											  list.add("q", "RandomIntField:["+ ft_2 + " TO " + ft_1 + "]");
 							 			}
 							 
-						 } else if (this.queryType == NumericQueryType.GREATER_THAN_NUMERIC_QUERY) {
+						 } else if (this.queryType == QueryType.GREATER_THAN_NUMERIC_QUERY) {
 							  list.add("q", "RandomIntField:["+ SolrIndexingClient.intList.get(random.nextInt(SolrIndexingClient.documentCount)) + " TO *]");
-						 } else if (this.queryType == NumericQueryType.LESS_THAN_NUMERIC_QUERY) {
+						 } else if (this.queryType == QueryType.LESS_THAN_NUMERIC_QUERY) {
 							  list.add("q", "RandomIntField:[* TO " + SolrIndexingClient.intList.get(random.nextInt(SolrIndexingClient.documentCount)) + "]");
 						 }
 
