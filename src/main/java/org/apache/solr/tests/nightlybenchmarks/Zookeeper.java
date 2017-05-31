@@ -1,11 +1,7 @@
 package org.apache.solr.tests.nightlybenchmarks;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 
 enum ZookeeperAction {ZOOKEEPER_START, ZOOKEEPER_STOP, ZOOKEEPER_CLEAN }
 
@@ -39,37 +35,12 @@ public class Zookeeper {
 		File release = new File(Util.TEMP_DIR + "zookeeper-" + Util.ZOOKEEPER_RELEASE + ".tar.gz");
 		if (!release.exists()) {
 
-			String fileName = null;
-			URL link = null;
-			InputStream in = null;
-			FileOutputStream fos = null;
+			Util.postMessage("** Attempting to download zookeeper release ..." + " : " + Util.ZOOKEEPER_RELEASE,
+					MessageType.WHITE_TEXT, true);
+			String fileName = "zookeeper-" + Util.ZOOKEEPER_RELEASE + ".tar.gz";
 
-			try {
+			Util.download(Util.ZOOKEEPER_DOWNLOAD_URL + "zookeeper-" + Util.ZOOKEEPER_RELEASE + File.separator + fileName, Util.TEMP_DIR + fileName);
 
-				Util.postMessage("** Attempting to download zookeeper release ..." + " : " + Util.ZOOKEEPER_RELEASE,
-						MessageType.WHITE_TEXT, true);
-				fileName = "zookeeper-" + Util.ZOOKEEPER_RELEASE + ".tar.gz";
-				link = new URL(Util.ZOOKEEPER_DOWNLOAD_URL + "zookeeper-" + Util.ZOOKEEPER_RELEASE + File.separator + fileName);
-				Util.postMessage(Util.ZOOKEEPER_DOWNLOAD_URL + "zookeeper-" + Util.ZOOKEEPER_RELEASE + File.separator + fileName,
-						MessageType.WHITE_TEXT, true);
-				in = new BufferedInputStream(link.openStream());
-				fos = new FileOutputStream(Util.TEMP_DIR + fileName);
-				byte[] buf = new byte[1024 * 1024]; // 1mb blocks
-				int n = 0;
-				long size = 0;
-				while (-1 != (n = in.read(buf))) {
-					size += n;
-					Util.postMessageOnLine("\r" + size + " ");
-					fos.write(buf, 0, n);
-				}
-				fos.close();
-				in.close();
-
-			} catch (Exception e) {
-
-				Util.postMessage(e.getMessage(), MessageType.RED_TEXT, false);
-
-			}
 		} else {
 			Util.postMessage("** Release present nothing to download ...",
 					MessageType.GREEN_TEXT, false);		

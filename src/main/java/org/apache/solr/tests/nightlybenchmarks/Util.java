@@ -1,5 +1,6 @@
 package org.apache.solr.tests.nightlybenchmarks;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,6 +13,7 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.DatagramSocket;
 import java.net.ServerSocket;
+import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -282,6 +284,36 @@ public class Util {
 			// Marking for GC
 			bos = null;
 		}
+	}
+
+	public static void download(String downloadURL, String fileDownloadLocation) {
+
+		URL link = null;
+		InputStream in = null;
+		FileOutputStream fos = null;
+
+		try {
+
+			link = new URL(downloadURL);
+			in = new BufferedInputStream(link.openStream());
+			fos = new FileOutputStream(fileDownloadLocation);
+			byte[] buf = new byte[1024 * 1024]; // 1mb blocks
+			int n = 0;
+			long size = 0;
+			while (-1 != (n = in.read(buf))) {
+				size += n;
+				Util.postMessageOnLine("\r" + size + " ");
+				fos.write(buf, 0, n);
+			}
+			fos.close();
+			in.close();
+
+		} catch (Exception e) {
+
+			Util.postMessage(e.getMessage(), MessageType.RED_TEXT, false);
+
+		}
+
 	}
 
 	public static void extract(String filename, String filePath) throws IOException {
