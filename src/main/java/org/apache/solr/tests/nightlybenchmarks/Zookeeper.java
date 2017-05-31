@@ -3,7 +3,9 @@ package org.apache.solr.tests.nightlybenchmarks;
 import java.io.File;
 import java.io.IOException;
 
-enum ZookeeperAction {ZOOKEEPER_START, ZOOKEEPER_STOP, ZOOKEEPER_CLEAN }
+enum ZookeeperAction {
+	ZOOKEEPER_START, ZOOKEEPER_STOP, ZOOKEEPER_CLEAN
+}
 
 public class Zookeeper {
 
@@ -31,7 +33,7 @@ public class Zookeeper {
 			base.mkdir();
 			base.setExecutable(true);
 		}
-	
+
 		File release = new File(Util.TEMP_DIR + "zookeeper-" + Util.ZOOKEEPER_RELEASE + ".tar.gz");
 		if (!release.exists()) {
 
@@ -39,52 +41,55 @@ public class Zookeeper {
 					MessageType.WHITE_TEXT, true);
 			String fileName = "zookeeper-" + Util.ZOOKEEPER_RELEASE + ".tar.gz";
 
-			Util.download(Util.ZOOKEEPER_DOWNLOAD_URL + "zookeeper-" + Util.ZOOKEEPER_RELEASE + File.separator + fileName, Util.TEMP_DIR + fileName);
+			Util.download(
+					Util.ZOOKEEPER_DOWNLOAD_URL + "zookeeper-" + Util.ZOOKEEPER_RELEASE + File.separator + fileName,
+					Util.TEMP_DIR + fileName);
 
 		} else {
-			Util.postMessage("** Release present nothing to download ...",
-					MessageType.GREEN_TEXT, false);		
+			Util.postMessage("** Release present nothing to download ...", MessageType.GREEN_TEXT, false);
 		}
 
 		File urelease = new File(Util.TEMP_DIR + "zookeeper-" + Util.ZOOKEEPER_RELEASE);
 		if (!urelease.exists()) {
 
-			
 			Util.execute("tar -xf " + Util.TEMP_DIR + "zookeeper-" + Util.ZOOKEEPER_RELEASE + ".tar.gz" + " -C "
-							+ Util.ZOOKEEPER_DIR, Util.ZOOKEEPER_DIR);
-			
-			Util.execute("mv " + Util.ZOOKEEPER_DIR + "zookeeper-" + Util.ZOOKEEPER_RELEASE + File.separator + "conf"
-					+ File.separator + "zoo_sample.cfg " + Util.ZOOKEEPER_DIR + "zookeeper-" + Util.ZOOKEEPER_RELEASE
-					+ File.separator + "conf" + File.separator + "zoo.cfg", Util.ZOOKEEPER_DIR);
+					+ Util.ZOOKEEPER_DIR, Util.ZOOKEEPER_DIR);
 
-			
+			Util.execute(
+					"mv " + Util.ZOOKEEPER_DIR + "zookeeper-" + Util.ZOOKEEPER_RELEASE + File.separator + "conf"
+							+ File.separator + "zoo_sample.cfg " + Util.ZOOKEEPER_DIR + "zookeeper-"
+							+ Util.ZOOKEEPER_RELEASE + File.separator + "conf" + File.separator + "zoo.cfg",
+					Util.ZOOKEEPER_DIR);
+
 		} else {
 			Util.postMessage("** Release extracted already nothing to do ..." + " : " + Util.ZOOKEEPER_RELEASE,
-					MessageType.GREEN_TEXT, false);		
+					MessageType.GREEN_TEXT, false);
 		}
 	}
 
-	
 	public int doAction(ZookeeperAction action) {
-		
-		
+
 		new File(Util.ZOOKEEPER_DIR + "zookeeper-" + Util.ZOOKEEPER_RELEASE + File.separator + zooCommand)
-		.setExecutable(true);
-		
+				.setExecutable(true);
+
 		if (action == ZookeeperAction.ZOOKEEPER_START) {
-			return Util.execute(Util.ZOOKEEPER_DIR + "zookeeper-" + Util.ZOOKEEPER_RELEASE + File.separator + zooCommand + " start", Util.ZOOKEEPER_DIR + "zookeeper-" + Util.ZOOKEEPER_RELEASE + File.separator);
+			return Util.execute(
+					Util.ZOOKEEPER_DIR + "zookeeper-" + Util.ZOOKEEPER_RELEASE + File.separator + zooCommand + " start",
+					Util.ZOOKEEPER_DIR + "zookeeper-" + Util.ZOOKEEPER_RELEASE + File.separator);
 		} else if (action == ZookeeperAction.ZOOKEEPER_STOP) {
-			return Util.execute(Util.ZOOKEEPER_DIR + "zookeeper-" + Util.ZOOKEEPER_RELEASE + File.separator + zooCommand + " stop", Util.ZOOKEEPER_DIR + "zookeeper-" + Util.ZOOKEEPER_RELEASE + File.separator);
+			return Util.execute(
+					Util.ZOOKEEPER_DIR + "zookeeper-" + Util.ZOOKEEPER_RELEASE + File.separator + zooCommand + " stop",
+					Util.ZOOKEEPER_DIR + "zookeeper-" + Util.ZOOKEEPER_RELEASE + File.separator);
 		} else if (action == ZookeeperAction.ZOOKEEPER_CLEAN) {
 			return Util.execute("rm -r -f " + Util.ZOOKEEPER_DIR, Util.ZOOKEEPER_DIR);
 		}
-		
+
 		return -1;
 	}
 
 	public void cleanZooDataDir() {
 		try {
-				Util.deleteDirectory("/tmp/zookeeper/");
+			Util.deleteDirectory("/tmp/zookeeper/");
 		} catch (IOException | InterruptedException e) {
 			e.printStackTrace();
 		}
