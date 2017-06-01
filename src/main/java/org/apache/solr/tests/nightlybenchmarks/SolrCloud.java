@@ -1,3 +1,4 @@
+
 package org.apache.solr.tests.nightlybenchmarks;
 
 import java.io.IOException;

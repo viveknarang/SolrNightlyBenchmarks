@@ -15,8 +15,26 @@ public class BenchmarkAppConnector {
 
 	public enum FileType {
 
-		MEMORY_HEAP_USED, PROCESS_CPU_LOAD, TEST_ENV_FILE, STANDALONE_INDEXING_MAIN, STANDALONE_CREATE_COLLECTION_MAIN, STANDALONE_INDEXING_THROUGHPUT, CLOUD_CREATE_COLLECTION_MAIN, CLOUD_SERIAL_INDEXING_THROUGHPUT, CLOUD_CONCURRENT_INDEXING_THROUGHPUT, CLOUD_INDEXING_SERIAL, CLOUD_INDEXING_CONCURRENT, NUMERIC_QUERY_STANDALONE, NUMERIC_QUERY_CLOUD
+		MEMORY_HEAP_USED, PROCESS_CPU_LOAD, TEST_ENV_FILE, STANDALONE_INDEXING_MAIN, STANDALONE_CREATE_COLLECTION_MAIN, STANDALONE_INDEXING_THROUGHPUT, CLOUD_CREATE_COLLECTION_MAIN, CLOUD_SERIAL_INDEXING_THROUGHPUT, CLOUD_CONCURRENT_INDEXING_THROUGHPUT, CLOUD_INDEXING_SERIAL, CLOUD_INDEXING_CONCURRENT, NUMERIC_QUERY_STANDALONE, NUMERIC_QUERY_CLOUD, LAST_RUN_COMMIT, IS_RUNNING_FILE
 
+	}
+	
+	public static String getLastRunCommitID() {
+		File dataDir = new File(benchmarkAppDirectory + "data" + File.separator + "lastrun" + File.separator);
+		return dataDir.listFiles()[0].getName().trim();
+	}
+	
+	public static boolean isRunningFolderEmpty() {
+		return new File(benchmarkAppDirectory + "data" + File.separator + "running" + File.separator).listFiles().length==0?true:false;	
+	}
+	
+	public static void deleteFile(FileType type) {
+
+		if (type == FileType.LAST_RUN_COMMIT) {
+			Util.execute("rm -r -f " + BenchmarkAppConnector.benchmarkAppDirectory + "data" + File.separator + "lastrun" + File.separator + "*" , BenchmarkAppConnector.benchmarkAppDirectory + "data" + File.separator + "lastrun" + File.separator);
+		} else if (type == FileType.IS_RUNNING_FILE) {
+			Util.execute("rm -r -f " + BenchmarkAppConnector.benchmarkAppDirectory + "data" + File.separator + "running" + File.separator + "*" , BenchmarkAppConnector.benchmarkAppDirectory + "data" + File.separator + "running" + File.separator);
+		}
 	}
 
 	public static void writeToWebAppDataFile(String fileName, String data, boolean createNewFile, FileType type) {
@@ -28,13 +46,28 @@ public class BenchmarkAppConnector {
 
 		try {
 			
-			File dataDir = new File(benchmarkAppDirectory + File.separator + "data" + File.separator);
+			
+			File dataDir = null;
+			
+			if (type == FileType.IS_RUNNING_FILE) {
+				dataDir = new File(benchmarkAppDirectory + "data" + File.separator + "running" + File.separator);
+			} else if (type == FileType.LAST_RUN_COMMIT) {
+				dataDir = new File(benchmarkAppDirectory + "data" + File.separator + "lastrun" + File.separator);
+			} else {
+				dataDir = new File(benchmarkAppDirectory + "data" + File.separator);
+			}
+			
 			if (!dataDir.exists()) {
 				dataDir.mkdir();
+			}			
+
+			if (type == FileType.IS_RUNNING_FILE) {
+				file = new File(benchmarkAppDirectory + "data" + File.separator + "running" + File.separator + fileName);
+			} else if (type == FileType.LAST_RUN_COMMIT) {
+				file = new File(benchmarkAppDirectory + "data" + File.separator + "lastrun" + File.separator + fileName);
+			} else {
+				file = new File(benchmarkAppDirectory + "data" + File.separator + fileName);
 			}
-
-			file = new File(benchmarkAppDirectory + File.separator + "data" + File.separator + fileName);
-
 			fw = new FileWriter(file.getAbsoluteFile(), true);
 			bw = new BufferedWriter(fw);
 			

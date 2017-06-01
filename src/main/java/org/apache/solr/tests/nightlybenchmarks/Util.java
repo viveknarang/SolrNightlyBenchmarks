@@ -47,12 +47,14 @@ enum MessageType {
 public class Util {
 	
 	public static String WORK_DIRECTORY = System.getProperty("user.dir");
-	public static String DNAME = "SolrNightlyBenchmarks";
+	public static String DNAME = "SolrNightlyBenchmarksWorkDirectory";
 	public static String BASE_DIR = WORK_DIRECTORY + File.separator + DNAME + File.separator;
-	public static String TEMP_DIR = BASE_DIR + "temp" + File.separator;
+	public static String RUN_DIR = BASE_DIR + "RunDirectory" + File.separator;
+	public static String TEMP_DIR = BASE_DIR + "Download" + File.separator;
 	public static String ZOOKEEPER_DOWNLOAD_URL = "http://www.us.apache.org/dist/zookeeper/";
 	public static String ZOOKEEPER_RELEASE = "3.4.6";
-	public static String ZOOKEEPER_DIR = BASE_DIR + "ZOOKEEPER" + File.separator;
+	public static String ZOOKEEPER_DIR = RUN_DIR;
+	public static String SOLR_DIR = RUN_DIR;
 	public static String ZOOKEEPER_IP = "127.0.0.1";
 	public static String ZOOKEEPER_PORT = "2181";
 	public static String LUCENE_SOLR_REPOSITORY_URL = "https://github.com/apache/lucene-solr";
@@ -104,17 +106,17 @@ public class Util {
 
 		Runtime rt = Runtime.getRuntime();
 		Process proc = null;
-		ProcessStreamReader errorGobbler = null;
-		ProcessStreamReader outputGobbler = null;
+		ProcessStreamReader processErrorStream = null;
+		ProcessStreamReader processOutputStream = null;
 
 		try {
 			proc = rt.exec(command, new String[] {}, workingDirectory);
 
-			errorGobbler = new ProcessStreamReader(proc.getErrorStream(), "ERROR");
-			outputGobbler = new ProcessStreamReader(proc.getInputStream(), "OUTPUT");
+			processErrorStream = new ProcessStreamReader(proc.getErrorStream(), "ERROR");
+			processOutputStream = new ProcessStreamReader(proc.getInputStream(), "OUTPUT");
 
-			errorGobbler.start();
-			outputGobbler.start();
+			processErrorStream.start();
+			processOutputStream.start();
 			proc.waitFor();
 			return proc.exitValue();
 		} catch (Exception e) {
@@ -649,6 +651,20 @@ public class Util {
 			Util.checkWebAppFiles();
 			Util.checkBaseAndTempDir();
 			Util.getSystemEnvironmentInformation();
+
+			if (!BenchmarkAppConnector.isRunningFolderEmpty()) {
+				Util.postMessage("** It looks like the last test session failed or was aborted ..", MessageType.RED_TEXT, false);
+
+				Util.killProcesses("zookeeper");
+				Util.killProcesses("Dsolr.jetty.https.port");
+				
+				Thread.sleep(5000);
+				
+				Util.cleanRunDirectory();
+				Util.deleteRunningFile();
+			} 
+			
+			Util.createIsRunningFile();
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -665,9 +681,63 @@ public class Util {
 			}
 
 			Util.setDeadFlag();
+			Util.createLastRunFile();
+			Util.deleteRunningFile();
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+	
+	public static void createLastRunFile() {
+		
+		BenchmarkAppConnector.deleteFile(FileType.LAST_RUN_COMMIT);
+		BenchmarkAppConnector.writeToWebAppDataFile(Util.COMMIT_ID, "", true, FileType.LAST_RUN_COMMIT);
+		
+	}
+	
+	public static void createIsRunningFile() {
+		
+		BenchmarkAppConnector.deleteFile(FileType.IS_RUNNING_FILE);
+		BenchmarkAppConnector.writeToWebAppDataFile(Util.COMMIT_ID, "", true, FileType.IS_RUNNING_FILE);
+		
+	}
+	
+	public static void deleteRunningFile() {
+		BenchmarkAppConnector.deleteFile(FileType.IS_RUNNING_FILE);
+	}
+	
+	public static void cleanRunDirectory() {
+		    Util.execute("rm -r -f " + Util.RUN_DIR, Util.RUN_DIR);
+	}
+	
+	public static void killProcesses(String lookFor) {
+		
+			Util.postMessage("** Searching and killing " + lookFor + " process(es) ...", MessageType.RED_TEXT, false);
 
+			BufferedReader reader;
+			String line = "";
+
+			try {
+				String[] cmd = { "/bin/sh", "-c", "ps -ef | grep " + lookFor + " | awk '{print $2}'" };
+				reader = new BufferedReader(new InputStreamReader(Runtime.getRuntime().exec(cmd).getInputStream()));
+
+				while ((line = reader.readLine()) != null) {
+
+										line = line.trim();
+										Util.postMessage("** Found " + lookFor + " Running with PID " + line + " Killing now ..", MessageType.RED_TEXT, false);
+										Runtime.getRuntime().exec("kill -9 " + line);
+				}
+
+				reader.close();
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				// Marking for GC
+				reader = null;
+				line = null;
+			}
+			
+	}
 }

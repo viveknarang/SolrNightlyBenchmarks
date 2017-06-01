@@ -45,7 +45,7 @@ public class SolrNode {
 		Util.postMessage("** Installing Solr Node ...", MessageType.WHITE_TEXT, true);
 		this.port = String.valueOf(Util.getFreePort());
 		
-		  this.baseDirectory  = Util.BASE_DIR + UUID.randomUUID().toString() + File.separator;
+		  this.baseDirectory  = Util.SOLR_DIR + UUID.randomUUID().toString() + File.separator;
 		  
 		  this.nodeDirectory = this.baseDirectory + "solr-7.0.0-SNAPSHOT/bin/";
 		  
