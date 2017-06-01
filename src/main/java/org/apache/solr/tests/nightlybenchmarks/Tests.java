@@ -32,7 +32,7 @@ public class Tests {
 		node.doAction(SolrNodeAction.NODE_STOP);		
 		node.cleanup();	
 		
-		/*SolrCloud cloud = new SolrCloud(5, "2", "2", commitID, null, "localhost", true);
+		SolrCloud cloud = new SolrCloud(5, "2", "2", commitID, null, "localhost", true);
 		Tests.cloud = cloud;		
 		SolrIndexingClient cloudClient = new SolrIndexingClient("localhost", cloud.port, cloud.collectionName, commitID);
 		BenchmarkReportData.metricMapCloudSerial = cloudClient.indexAmazonFoodData(numDocuments, cloud.getuRL(), cloud.zookeeperIp, cloud.zookeeperPort, cloud.collectionName);
@@ -45,7 +45,7 @@ public class Tests {
 
 		cloud.shutdown();
 		BenchmarkReportData.returnCloudCreateCollectionMap = cloud.returnMapCreateCollection;
-*/		
+		
 		} catch (Exception e) {
 			e.printStackTrace();
 		}		

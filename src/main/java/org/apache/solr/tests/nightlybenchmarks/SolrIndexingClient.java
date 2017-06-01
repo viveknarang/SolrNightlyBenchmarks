@@ -3,8 +3,6 @@ package org.apache.solr.tests.nightlybenchmarks;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -112,13 +110,10 @@ public class SolrIndexingClient {
         } catch (SolrServerException e) {
 			e.printStackTrace();
 		}
-
-        Date dNow = new Date( );
-   	    SimpleDateFormat ft =  new SimpleDateFormat ("yyyy/MM/dd HH:mm:ss");
    	    
    	    Map<String, String> returnMetricMap = new HashMap<String, String>();
    	    
-   	    returnMetricMap.put("TimeStamp", ft.format(dNow));
+   	    returnMetricMap.put("TimeStamp", Util.TEST_TIME);
    	    returnMetricMap.put("TimeFormat", "yyyy/MM/dd HH:mm:ss");
    	    returnMetricMap.put("IndexingTime", "" + (double)((double)(end-start)/(double)1000000000));
    	    returnMetricMap.put("IndexingThroughput", "" + (double)numberOfDocuments/((double)((double)end-start)/(double)1000000000));
@@ -202,13 +197,10 @@ public class SolrIndexingClient {
         } catch (SolrServerException e) {
 			e.printStackTrace();
 		}
-
-        Date dNow = new Date( );
-   	    SimpleDateFormat ft =  new SimpleDateFormat ("yyyy/MM/dd HH:mm:ss");
 		
    	    Map<String, String> returnMetricMap = new HashMap<String, String>();
    	    
-   	    returnMetricMap.put("TimeStamp", ft.format(dNow));
+   	    returnMetricMap.put("TimeStamp", Util.TEST_TIME);
    	    returnMetricMap.put("TimeFormat", "yyyy/MM/dd HH:mm:ss");
    	    returnMetricMap.put("IndexingTime", "" + (double)((double)(end-start)/(double)1000000000));
    	    returnMetricMap.put("IndexingThroughput", "" + (double)numberOfDocuments/((double)((double)end-start)/(double)1000000000));
@@ -296,12 +288,9 @@ public class SolrIndexingClient {
 			e.printStackTrace();
 		}
 
-        Date dNow = new Date( );
-   	    SimpleDateFormat ft =  new SimpleDateFormat ("yyyy/MM/dd HH:mm:ss");
-
    	    Map<String, String> returnMetricMap = new HashMap<String, String>();
    	    
-   	    returnMetricMap.put("TimeStamp", ft.format(dNow));
+   	    returnMetricMap.put("TimeStamp", Util.TEST_TIME);
    	    returnMetricMap.put("TimeFormat", "yyyy/MM/dd HH:mm:ss");
    	    returnMetricMap.put("IndexingTime", "" + (double)((double)(end-start)/(double)1000000000));
    	    returnMetricMap.put("IndexingThroughput", "" + (double)numberOfDocuments/((double)((double)end-start)/(double)1000000000));

@@ -52,16 +52,16 @@ public class MetricCollector extends Thread {
 					Date dNow = new Date();
 					SimpleDateFormat ft = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 					BenchmarkAppConnector.writeToWebAppDataFile(
-							this.commitID + "_" + MetricType.MEM_ESTIMATION + "_" + testType + "_dump.csv",
-							ft.format(dNow) + ", "
+							Util.TEST_ID + "_" + this.commitID + "_" + MetricType.MEM_ESTIMATION + "_" + testType + "_dump.csv",
+							ft.format(dNow) + ", " + Util.TEST_ID + ", "
 									+ (Double.parseDouble(
 											((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm"))
 													.get("memory.heap.used").toString())
 											/ (1024 * 1024)),
 							false, FileType.MEMORY_HEAP_USED);
 					BenchmarkAppConnector.writeToWebAppDataFile(
-							this.commitID + "_" + MetricType.CPU_ESTIMATION + "_" + testType + "_dump.csv",
-							ft.format(dNow) + ", "
+							Util.TEST_ID + "_" + this.commitID + "_" + MetricType.CPU_ESTIMATION + "_" + testType + "_dump.csv",
+							ft.format(dNow) + ", " + Util.TEST_ID + ", "
 									+ (Double.parseDouble(
 											((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm"))
 													.get("os.processCpuLoad").toString())
@@ -89,18 +89,18 @@ public class MetricCollector extends Thread {
 					Date dNow = new Date();
 					SimpleDateFormat ft = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 					BenchmarkAppConnector.writeToWebAppDataFile(
-							this.commitID + "_" + MetricType.MEM_ESTIMATION + "_"
+							Util.TEST_ID + "_" + this.commitID + "_" + MetricType.MEM_ESTIMATION + "_"
 									+ TestType.STANDALONE_CREATE_COLLECTION + "_dump.csv",
-							ft.format(dNow) + ", "
+							ft.format(dNow) + ", " + Util.TEST_ID + ", "
 									+ (Double.parseDouble(
 											((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm"))
 													.get("memory.heap.used").toString())
 											/ (1024 * 1024)),
 							false, FileType.MEMORY_HEAP_USED);
 					BenchmarkAppConnector.writeToWebAppDataFile(
-							this.commitID + "_" + MetricType.CPU_ESTIMATION + "_"
+							Util.TEST_ID + "_" + this.commitID + "_" + MetricType.CPU_ESTIMATION + "_"
 									+ TestType.STANDALONE_CREATE_COLLECTION + "_dump.csv",
-							ft.format(dNow) + ", "
+							ft.format(dNow) + ", " + Util.TEST_ID + ", "
 									+ (Double.parseDouble(
 											((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm"))
 													.get("os.processCpuLoad").toString())
@@ -128,18 +128,18 @@ public class MetricCollector extends Thread {
 					Date dNow = new Date();
 					SimpleDateFormat ft = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 					BenchmarkAppConnector.writeToWebAppDataFile(
-							this.commitID + "_" + MetricType.MEM_ESTIMATION + "_" + TestType.CLOUD_CREATE_COLLECTION
+							Util.TEST_ID + "_" + this.commitID + "_" + MetricType.MEM_ESTIMATION + "_" + TestType.CLOUD_CREATE_COLLECTION
 									+ "_dump.csv",
-							ft.format(dNow) + ", "
+							ft.format(dNow) + ", " + Util.TEST_ID + ", "
 									+ (Double.parseDouble(
 											((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm"))
 													.get("memory.heap.used").toString())
 											/ (1024 * 1024)),
 							false, FileType.MEMORY_HEAP_USED);
 					BenchmarkAppConnector.writeToWebAppDataFile(
-							this.commitID + "_" + MetricType.CPU_ESTIMATION + "_" + TestType.CLOUD_CREATE_COLLECTION
+							Util.TEST_ID + "_" + this.commitID + "_" + MetricType.CPU_ESTIMATION + "_" + TestType.CLOUD_CREATE_COLLECTION
 									+ "_dump.csv",
-							ft.format(dNow) + ", "
+							ft.format(dNow) + ", " + Util.TEST_ID + ", "
 									+ (Double.parseDouble(
 											((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm"))
 													.get("os.processCpuLoad").toString())
@@ -167,18 +167,18 @@ public class MetricCollector extends Thread {
 					Date dNow = new Date();
 					SimpleDateFormat ft = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 					BenchmarkAppConnector.writeToWebAppDataFile(
-							this.commitID + "_" + MetricType.MEM_ESTIMATION + "_" + TestType.CLOUD_INDEXING_REGULAR
+							Util.TEST_ID + "_" + this.commitID + "_" + MetricType.MEM_ESTIMATION + "_" + TestType.CLOUD_INDEXING_REGULAR
 									+ "_dump.csv",
-							ft.format(dNow) + ", "
+							ft.format(dNow) + ", " + Util.TEST_ID + ", "
 									+ (Double.parseDouble(
 											((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm"))
 													.get("memory.heap.used").toString())
 											/ (1024 * 1024)),
 							false, FileType.MEMORY_HEAP_USED);
 					BenchmarkAppConnector.writeToWebAppDataFile(
-							this.commitID + "_" + MetricType.CPU_ESTIMATION + "_" + TestType.CLOUD_INDEXING_REGULAR
+							Util.TEST_ID + "_" + this.commitID + "_" + MetricType.CPU_ESTIMATION + "_" + TestType.CLOUD_INDEXING_REGULAR
 									+ "_dump.csv",
-							ft.format(dNow) + ", "
+							ft.format(dNow) + ", " + Util.TEST_ID + ", "
 									+ (Double.parseDouble(
 											((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm"))
 													.get("os.processCpuLoad").toString())
@@ -206,18 +206,18 @@ public class MetricCollector extends Thread {
 					Date dNow = new Date();
 					SimpleDateFormat ft = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 					BenchmarkAppConnector.writeToWebAppDataFile(
-							this.commitID + "_" + MetricType.MEM_ESTIMATION + "_" + TestType.CLOUD_INDEXING_CONCURRENT
+							Util.TEST_ID + "_" + this.commitID + "_" + MetricType.MEM_ESTIMATION + "_" + TestType.CLOUD_INDEXING_CONCURRENT
 									+ "_dump.csv",
-							ft.format(dNow) + ", "
+							ft.format(dNow) + ", " + Util.TEST_ID + ", "
 									+ (Double.parseDouble(
 											((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm"))
 													.get("memory.heap.used").toString())
 											/ (1024 * 1024)),
 							false, FileType.MEMORY_HEAP_USED);
 					BenchmarkAppConnector.writeToWebAppDataFile(
-							this.commitID + "_" + MetricType.CPU_ESTIMATION + "_" + TestType.CLOUD_INDEXING_CONCURRENT
+							Util.TEST_ID + "_" + this.commitID + "_" + MetricType.CPU_ESTIMATION + "_" + TestType.CLOUD_INDEXING_CONCURRENT
 									+ "_dump.csv",
-							ft.format(dNow) + ", "
+							ft.format(dNow) + ", " + Util.TEST_ID + ", "
 									+ (Double.parseDouble(
 											((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm"))
 													.get("os.processCpuLoad").toString())

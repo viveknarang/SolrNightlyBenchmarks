@@ -16,9 +16,12 @@ import java.net.ServerSocket;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.zip.ZipInputStream;
 
@@ -42,7 +45,7 @@ enum MessageType {
 };
 
 public class Util {
-
+	
 	public static String WORK_DIRECTORY = System.getProperty("user.dir");
 	public static String DNAME = "SolrNightlyBenchmarks";
 	public static String BASE_DIR = WORK_DIRECTORY + File.separator + DNAME + File.separator;
@@ -56,6 +59,8 @@ public class Util {
 	public static String GIT_REPOSITORY_PATH;
 	public static String COMMIT_ID;
 	public static boolean SILENT = false;
+	public static String TEST_ID = UUID.randomUUID().toString();
+	public static String TEST_TIME = new SimpleDateFormat ("yyyy/MM/dd HH:mm:ss").format(new Date()); 
 
 	final static Logger logger = Logger.getLogger(Util.class);
 
@@ -487,7 +492,7 @@ public class Util {
 				+ ((JSONObject) ((JSONObject) jsonObject.get("metrics")).get("solr.jvm")).get("os.totalSwapSpaceSize")
 				+ " Bytes</b><br/>\n";
 
-		BenchmarkAppConnector.writeToWebAppDataFile(commitID + "_" + FileType.TEST_ENV_FILE + "_dump.csv", printString,
+		BenchmarkAppConnector.writeToWebAppDataFile(Util.TEST_ID + "_" + commitID + "_" + FileType.TEST_ENV_FILE + "_dump.csv", printString,
 				true, FileType.TEST_ENV_FILE);
 
 		response = null;

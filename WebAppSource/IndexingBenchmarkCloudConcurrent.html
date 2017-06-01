@@ -154,6 +154,7 @@
 
 	    var fileData;
 	    var commitID;
+	    var testID;
 
 	    $(document).ready(function () {
 
@@ -184,11 +185,13 @@
 
 
                             g2 = new Dygraph(document.getElementById("graphdiv2"), "data/indexing_data_cloud_concurrent.csv", {
-                                labelsDiv: document.getElementById('status'), visibility: [false, true, true, true, true, true],
+                                labelsDiv: document.getElementById('status'), visibility: [false, false, true, true, true, true, true],
 
                                  highlightCallback: function (e, x, pts, row) {
-                                                    commitID = fileData[(row + 1)].split(",")[1].trim();
-                                                    document.getElementById("pointData").innerHTML = "Commit ID: <font color='red'>" + fileData[(row + 1)].split(",")[1] + "</font>";
+                                     commitID = fileData[(row + 1)].split(",")[2].trim();
+                                     testID = fileData[(row + 1)].split(",")[1].trim();
+
+                                                    document.getElementById("pointData").innerHTML = "Commit ID: <font color='red'>" + fileData[(row + 1)].split(",")[2] + "</font>";
                                                 },
                                      clickCallback: function (e, x, pts) {
 
@@ -196,8 +199,8 @@
                                                      document.getElementById('memProfileFileChangeListLink').setAttribute('href', "https://git-wip-us.apache.org/repos/asf?p=lucene-solr.git;h=" + commitID);
 
                                                      setTimeout(function () {
-                                                         g3 = new Dygraph(document.getElementById("memProfileGraph"), "data/" + commitID + "_MEM_ESTIMATION_CLOUD_INDEXING_CONCURRENT_dump.csv", { labelsDiv: document.getElementById('memProfileStats') });
-                                                         g4 = new Dygraph(document.getElementById("cpuProfileGraph"), "data/" + commitID + "_CPU_ESTIMATION_CLOUD_INDEXING_CONCURRENT_dump.csv", { labelsDiv: document.getElementById('cpuProfileStats') });
+                                                         g3 = new Dygraph(document.getElementById("memProfileGraph"), "data/" + testID + "_" + commitID + "_MEM_ESTIMATION_CLOUD_INDEXING_CONCURRENT_dump.csv", { visibility: [false, true], labelsDiv: document.getElementById('memProfileStats') });
+                                                         g4 = new Dygraph(document.getElementById("cpuProfileGraph"), "data/" + testID + "_" + commitID + "_CPU_ESTIMATION_CLOUD_INDEXING_CONCURRENT_dump.csv", { visibility: [false, true], labelsDiv: document.getElementById('cpuProfileStats') });
                                                      }, 250);
 
                                                 }
@@ -218,7 +221,7 @@
 
                                     $("#HeapMemoryUsageTab").addClass("active");
 
-                                    g3 = new Dygraph(document.getElementById("memProfileGraph"), "data/" + commitID + "_MEM_ESTIMATION_CLOUD_INDEXING_CONCURRENT_dump.csv", { labelsDiv: document.getElementById('memProfileStats') });
+                                    g3 = new Dygraph(document.getElementById("memProfileGraph"), "data/" + testID + "_" + commitID + "_MEM_ESTIMATION_CLOUD_INDEXING_CONCURRENT_dump.csv", { visibility: [false, true], labelsDiv: document.getElementById('memProfileStats') });
 
                                 }
 
@@ -243,7 +246,7 @@
 
                                     $("#ProcessCPULoadTab").addClass("active");
 
-                                    g4 = new Dygraph(document.getElementById("cpuProfileGraph"), "data/" + commitID + "_CPU_ESTIMATION_CLOUD_INDEXING_CONCURRENT_dump.csv", { labelsDiv: document.getElementById('cpuProfileStats') });
+                                    g4 = new Dygraph(document.getElementById("cpuProfileGraph"), "data/" + testID + "_" + commitID + "_CPU_ESTIMATION_CLOUD_INDEXING_CONCURRENT_dump.csv", { visibility: [false, true], labelsDiv: document.getElementById('cpuProfileStats') });
 
                                 }
 
@@ -271,7 +274,7 @@
                                     $.ajax({
 
                                         type: "GET",
-                                        url: "data/" + commitID + "_TEST_ENV_FILE_dump.csv",
+                                        url: "data/" + testID + "_" + commitID + "_TEST_ENV_FILE_dump.csv",
                                         dataType: "text",
                                         success: function (data) {
                                             document.getElementById("testEnvTabBody").innerHTML = data;
