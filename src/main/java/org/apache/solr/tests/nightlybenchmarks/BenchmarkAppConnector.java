@@ -38,6 +38,10 @@ public class BenchmarkAppConnector {
 			fw = new FileWriter(file.getAbsoluteFile(), true);
 			bw = new BufferedWriter(fw);
 			
+			if (file.exists() && createNewFile) {
+				file.delete();
+				file.createNewFile();
+			}
 			
 			if (!file.exists()) {
 				file.createNewFile();
